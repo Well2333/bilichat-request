@@ -1,0 +1,51 @@
+from loguru import logger
+from playwright.async_api import Browser, Error, Playwright, async_playwright
+
+from ...config import config
+from .install_browser import install_browser
+
+# import importlib.util
+# if importlib.util.find_spec("nonebot_plugin_htmlrender"):
+#     from nonebot_plugin_htmlrender.browser import get_browser
+
+_browser: Browser | None = None
+_playwright: Playwright | None = None
+
+
+async def init(**kwargs) -> Browser:
+    global _browser
+    global _playwright
+    _playwright = await async_playwright().start()
+    try:
+        _browser = await launch_browser(**kwargs)
+    except Error:
+        await install_browser()
+        _browser = await launch_browser(**kwargs)
+    return _browser
+
+
+async def launch_browser(**kwargs) -> Browser:
+    assert _playwright is not None, "Playwright 没有安装"
+
+    if config.proxy:
+        kwargs["proxy"] = {
+            "server": config.proxy,
+        }
+    logger.info("使用 firefox 启动")
+    return await _playwright.firefox.launch(headless=False, **kwargs)
+
+
+async def get_browser(**kwargs) -> Browser:
+    return _browser if _browser and _browser.is_connected() else await init(**kwargs)
+
+
+async def shutdown_browser():
+    global _browser
+    global _playwright
+    if _browser:
+        if _browser.is_connected():
+            await _browser.close()
+        _browser = None
+    if _playwright:
+        # await _playwright.stop()
+        _playwright = None
