@@ -3,7 +3,9 @@ from io import BytesIO
 
 from httpx import AsyncClient
 
-from ...account import get_web_account
+from ....account import get_web_account
+from ....config import config
+from ....exceptions import NotFindAbortError, ResponseCodeError
 from .model.card import Data as CardData
 from .model.video import Data as VideoData
 
@@ -132,9 +134,17 @@ class VideoImage:
         cls,
         video_id: str | int,
         b23_url: str | None = None,
+        retry: int = config.retry,
     ) -> "VideoImage":
         async with get_web_account() as account:
-            data: VideoData = await account.web_requester.get_video_info(video_id)  # type: ignore
+            try:
+                data: VideoData = await account.web_requester.get_video_info(video_id)  # type: ignore
+            except ResponseCodeError as e:
+                if e.code == -404:
+                    raise NotFindAbortError(f"找不到视频 {video_id}")
+                if retry:
+                    return await cls.get(video_id, b23_url, retry - 1)
+                raise e
             b23_url = b23_url or await account.web_requester.get_b23_url(data["bvid"])
         # 获取封面
         async with AsyncClient() as client:

@@ -2,14 +2,33 @@
 name = "bilichat-request"
 version = "0.1.0"
 description = "Default template for PDM package"
-authors = [
-    {name = "Well404", email = "well_404@outlook.com"},
+authors = [{ name = "Well404", email = "well_404@outlook.com" }]
+dependencies = [
+    "playwright>=1.48.0",
+    "httpx>=0.27.2",
+    "jinja2>=3.1.4",
+    "fastapi>=0.115.5",
+    "loguru>=0.7.2",
+    "bilireq>=0.2.13",
+    "sentry-sdk>=2.19.0",
+    "pypng>=0.20220715.0",
+    "yarl>=1.18.0",
+    "uvicorn>=0.32.1",
+    "pytz>=2024.2",
 ]
-dependencies = ["playwright>=1.48.0", "httpx>=0.27.2", "jinja2>=3.1.4", "fastapi>=0.115.5", "loguru>=0.7.2", "bilireq>=0.2.13", "sentry-sdk>=2.19.0", "pypng>=0.20220715.0", "yarl>=1.18.0"]
 requires-python = "==3.10.*"
 readme = "README.md"
-license = {text = "None"}
+license = { text = "None" }
 
 
+[project.optional-dependencies]
+dev = [
+    "nonebot-plugin-htmlrender>=0.4.0",
+    "nonebot2[fastapi]>=2.4.0",
+    "ruff>=0.8.1",
+]
 [tool.pdm]
 distribution = true
+
+[tool.ruff.lint]
+select = ["UP", "F", "FAST", "I"]

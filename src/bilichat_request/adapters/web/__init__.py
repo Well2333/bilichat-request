@@ -1,15 +1,16 @@
 import re
 import time
+from collections.abc import Callable
 from hashlib import md5
-from typing import Any, Callable
+from typing import Any
 from urllib.parse import urlencode
 
 from httpx import AsyncClient
 from httpx._types import URLTypes
 from loguru import logger
 
-from ...exceptions import ResponseCodeError
 from ...config import config
+from ...exceptions import ResponseCodeError
 
 DEFAULT_HEADERS = {
     "User-Agent": (
@@ -133,7 +134,7 @@ class WebRequester:
         params["appkey"] = APPKEY
         params["ts"] = int(time.time())
         params["sign"] = md5(
-            f"{urlencode(sorted(params.items()))}{APPSEC}".encode("utf-8")
+            f"{urlencode(sorted(params.items()))}{APPSEC}".encode()
         ).hexdigest()
         return params
 

@@ -1,4 +1,4 @@
-from typing import Optional, TypedDict
+from typing_extensions import TypedDict
 
 
 class Vip(TypedDict):
@@ -11,7 +11,7 @@ class Vip(TypedDict):
     due_date: int  # 到期时间，UNIX 毫秒时间戳
     vip_pay_type: int  # 会员支付类型，作用尚不明确
     theme_type: int  # 会员主题类型，通常为0
-    label: Optional[dict[str, str]]  # 会员标签信息，作用尚不明确
+    label: dict[str, str]|None  # 会员标签信息，作用尚不明确
 
 
 class Official(TypedDict):
@@ -37,7 +37,7 @@ class StaffMember(TypedDict):
     vip: Vip  # 成员大会员状态
     official: Official  # 成员认证信息
     follower: int  # 成员粉丝数
-    label_style: Optional[int]  # 作用尚不明确，具体含义不清楚
+    label_style: int|None  # 作用尚不明确，具体含义不清楚
 
 
 class HonorReply(TypedDict):
@@ -45,7 +45,7 @@ class HonorReply(TypedDict):
     包含当前稿件的荣誉回馈信息。
     """
 
-    honor: list[dict[str, Optional[str]]]
+    honor: list[dict[str, str | None]]
 
 
 class SubtitleAuthor(TypedDict):
@@ -107,9 +107,9 @@ class Page(TypedDict):
     from_: str  # 视频来源，vupload：普通上传，hunan：芒果TV，qq：腾讯
     part: str  # 分P标题
     duration: int  # 分P持续时间，单位为秒
-    vid: Optional[str]  # 站外视频vid，只有站外视频有效
-    weblink: Optional[str]  # 站外视频跳转url，只有站外视频有效
-    dimension: Optional[Dimension]  # 当前分P分辨率，部分较老视频无分辨率值
+    vid: str | None  # 站外视频vid，只有站外视频有效
+    weblink: str | None  # 站外视频跳转url，只有站外视频有效
+    dimension: Dimension | None  # 当前分P分辨率，部分较老视频无分辨率值
 
 
 class Rights(TypedDict):
@@ -186,32 +186,32 @@ class Data(TypedDict):
     desc_v2: list[dict[str, int]]  # 新版视频简介
     state: int  # 视频状态
     duration: int  # 稿件总时长，单位为秒
-    forward: Optional[int]  # 撞车视频跳转avid，仅撞车视频存在此字段
-    mission_id: Optional[int]  # 稿件参与的活动id
-    redirect_url: Optional[str]  # 重定向url，仅番剧或影视视频存在此字段
+    forward: int | None  # 撞车视频跳转avid，仅撞车视频存在此字段
+    mission_id: int | None  # 稿件参与的活动id
+    redirect_url: str | None  # 重定向url，仅番剧或影视视频存在此字段
     rights: Rights  # 视频属性标志
     owner: Owner  # 视频UP主信息
     stat: Stat  # 视频状态数
     dynamic: str  # 视频同步发布的动态文字内容
     cid: int  # 视频1P cid
     dimension: Dimension  # 视频1P分辨率
-    premiere: Optional[None]  # 为空
-    teenage_mode: Optional[int]  # 用于青少年模式
-    is_chargeable_season: Optional[bool]  # 是否可收费季节
-    is_story: Optional[bool]  # 是否在Story Mode展示
-    is_upower_exclusive: Optional[bool]  # 是否为充电专属
-    is_upower_pay: Optional[bool]  # 作用尚不明确
-    is_upower_show: Optional[bool]  # 作用尚不明确
-    no_cache: Optional[bool]  # 是否不允许缓存
+    premiere: None | None  # 为空
+    teenage_mode: int | None  # 用于青少年模式
+    is_chargeable_season: bool | None  # 是否可收费季节
+    is_story: bool | None  # 是否在Story Mode展示
+    is_upower_exclusive: bool | None  # 是否为充电专属
+    is_upower_pay: bool | None  # 作用尚不明确
+    is_upower_show: bool | None  # 作用尚不明确
+    no_cache: bool | None  # 是否不允许缓存
     pages: list[Page]  # 视频分P列表
     subtitle: Subtitle  # 视频CC字幕信息
-    staff: Optional[list[StaffMember]]  # 合作成员列表
-    is_season_display: Optional[bool]  # 作用尚不明确
-    user_garb: Optional[dict[str, str]]  # 用户装扮信息
-    honor_reply: Optional[HonorReply]  # 荣誉回馈信息
-    like_icon: Optional[str]  # 空串
-    need_jump_bv: Optional[bool]  # 需要跳转到BV号?
-    disable_show_up_info: Optional[bool]  # 禁止展示UP主信息?
-    is_story_play: Optional[bool]  # 是否为Story Mode视频
-    is_view_self: Optional[bool]  # 是否为自己投稿的视频
-    argue_info: Optional[dict[str, str]]  # 争议/警告信息
+    staff: list[StaffMember] | None  # 合作成员列表
+    is_season_display: bool | None  # 作用尚不明确
+    user_garb: dict[str, str] | None  # 用户装扮信息
+    honor_reply: HonorReply | None  # 荣誉回馈信息
+    like_icon: str | None  # 空串
+    need_jump_bv: bool | None  # 需要跳转到BV号?
+    disable_show_up_info: bool | None  # 禁止展示UP主信息?
+    is_story_play: bool | None  # 是否为Story Mode视频
+    is_view_self: bool | None  # 是否为自己投稿的视频
+    argue_info: dict[str, str] | None  # 争议/警告信息

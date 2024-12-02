@@ -6,17 +6,15 @@ import jinja2
 from qrcode.image.pure import PyPNGImage
 from qrcode.main import QRCode
 
-from ...adapters.browser import get_new_page, pw_font_injecter
-from ...config import static_dir
+from ....adapters.browser import get_new_page, pw_font_injecter
+from ....config import static_dir
 from . import VideoImage
 
 style_bule = static_dir.joinpath("style_blue")
 
 
 async def screenshot(
-    video_id: str,
-    retry: bool = True,
-    mobile_style: bool = True,
+    video_id: int | str,
     quality: int = 75,
 ):
     video_info = await VideoImage.get(video_id)

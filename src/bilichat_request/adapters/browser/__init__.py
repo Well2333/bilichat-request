@@ -1,5 +1,5 @@
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 from loguru import logger
 from playwright.async_api import Page, Request, Route
@@ -48,6 +48,7 @@ async def get_new_page(
             "5.0 (Linux; Android 13; SM-A037U) "
             "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36  uacq"
         )
+    logger.trace("创建新页面")
     page = await browser.new_page(device_scale_factor=device_scale_factor, **kwargs)
     async with get_web_account() as account:
         cookies = account.cookies
@@ -65,6 +66,7 @@ async def get_new_page(
         try:
             yield page
         finally:
+            logger.trace("关闭页面")
             cookies = await page.context.cookies()
             account.update(
                 {
@@ -81,7 +83,7 @@ async def network_request(request: Request):
     response = await request.response()
     if response:
         status = response.status
-        timing = "%.2f" % response.request.timing["responseEnd"]
+        timing = "{:.2f}".format(response.request.timing["responseEnd"])
     else:
         status = "/"
         timing = "/"

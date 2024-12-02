@@ -5,9 +5,9 @@ from loguru import logger
 from playwright.async_api import Page, Response, TimeoutError
 from sentry_sdk import capture_exception
 
-from ..adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
-from ..config import static_dir
-from ..exceptions import AbortError, CaptchaAbortError, NotFindAbortError
+from ...adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
+from ...config import config, static_dir
+from ...exceptions import AbortError, CaptchaAbortError, NotFindAbortError
 
 mobile_style_js = static_dir.joinpath("browser", "mobile_style.js")
 
@@ -39,8 +39,8 @@ async def get_mobile_screenshot(page: Page, dynid: str):
             "[Captcha] 需要人机验证，配置 bilichat_bilibili_cookie 可以缓解此问题"
         )
 
-    if page.url == "https://m.bilibili.com/404":
-        raise NotFindAbortError(f"{dynid} 动态不存在")
+    if "https://m.bilibili.com/404" in page.url:
+        raise NotFindAbortError(f"动态 {dynid} 不存在")
 
     await page.wait_for_load_state(state="domcontentloaded")
     await page.wait_for_selector(
@@ -76,7 +76,7 @@ async def get_pc_screenshot(page: Page, dynid: str):
     await page.goto(url, wait_until="networkidle")
     # 动态被删除或者进审核了
     if page.url == "https://www.bilibili.com/404":
-        raise NotFindAbortError(f"{dynid} 动态不存在")
+        raise NotFindAbortError(f"动态 {dynid} 不存在")
     card = await page.query_selector(".card")
     assert card
     clip = await card.bounding_box()
@@ -91,14 +91,15 @@ async def get_pc_screenshot(page: Page, dynid: str):
 
 async def screenshot(
     dynid: str,
-    retry: bool = True,
+    retry: int = config.retry,
     mobile_style: bool = True,
     quality: int = 75,
 ) -> bytes:
     logger.info(f"正在截图动态：{dynid}")
-    async with get_new_page(mobile_style=(mobile_style)) as page:
-        await page.route(re.compile("^https://fonts.bbot/(.+)$"), pw_font_injecter)
-        try:
+    try:
+        async with get_new_page(mobile_style=(mobile_style)) as page:
+            await page.route(re.compile("^https://fonts.bbot/(.+)$"), pw_font_injecter)
+
             # page.on("requestfinished", network_request)
             page.on("requestfailed", network_requestfailed)
             if mobile_style:
@@ -115,29 +116,25 @@ async def screenshot(
                 return picture
             else:
                 raise AbortError(f"{dynid} 动态截图失败")
-        except CaptchaAbortError:
-            raise
-        except TimeoutError:
+    except CaptchaAbortError:
+        raise
+    except TimeoutError:
+        if retry:
+            logger.error(f"动态 {dynid} 截图超时, 重试...")
+            return await screenshot(
+                dynid, mobile_style=mobile_style, quality=quality, retry=retry - 1
+            )
+        raise AbortError(f"{dynid} 动态截图超时")
+    except NotFindAbortError:
+        raise NotFindAbortError(f"动态 {dynid} 不存在")
+    except Exception as e:  # noqa
+        if "waiting until" in str(e):
+            raise NotFindAbortError(f"动态 {dynid} 不存在")
+        else:
+            capture_exception()
             if retry:
-                logger.error(f"动态 {dynid} 截图超时, 重试...")
-                return await screenshot(dynid, retry=False)
-            raise AbortError(f"{dynid} 动态截图超时")
-        except NotFindAbortError:
-            if retry:
-                logger.error(f"动态 {dynid} 截图超时, 3秒后重试...")
-                await asyncio.sleep(3)
-                return await screenshot(dynid, retry=False)
-            raise
-        except Exception as e:  # noqa
-            if "waiting until" in str(e):
-                if retry:
-                    logger.error(f"动态 {dynid} 截图超时, 3秒后重试...")
-                    await asyncio.sleep(3)
-                    return await screenshot(dynid, retry=False)
-                raise AbortError(f"{dynid} 动态截图超时")
-            else:
-                capture_exception()
-                if retry:
-                    logger.exception(f"动态 {dynid} 截图超时, 重试...")
-                    return await screenshot(dynid, retry=False)
-                raise AbortError(f"{dynid} 动态截图失败")
+                logger.exception(f"动态 {dynid} 截图失败, 重试...")
+                return await screenshot(
+                    dynid, mobile_style=mobile_style, quality=quality, retry=retry - 1
+                )
+            raise AbortError(f"{dynid} 动态截图失败")

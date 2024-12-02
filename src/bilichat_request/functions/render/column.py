@@ -5,16 +5,16 @@ from loguru import logger
 from playwright.async_api import TimeoutError
 from sentry_sdk import capture_exception
 
-from ..adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
-from ..config import config
-from ..exceptions import AbortError, CaptchaAbortError, NotFindAbortError
+from ...adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
+from ...config import config
+from ...exceptions import AbortError, CaptchaAbortError, NotFindAbortError
 
 
 async def screenshot(cvid: str, retry: int = config.retry, quality=75) -> bytes:
     logger.info(f"正在截图专栏: cv{cvid}")
-    async with get_new_page() as page:
-        await page.route(re.compile("^https://fonts.bbot/(.+)$"), pw_font_injecter)
-        try:
+    try:
+        async with get_new_page() as page:
+            await page.route(re.compile("^https://fonts.bbot/(.+)$"), pw_font_injecter)
             page.on("requestfailed", network_requestfailed)
             url = f"https://www.bilibili.com/read/cv{cvid}"
             await page.set_viewport_size({"width": 1080, "height": 1080})
@@ -22,11 +22,7 @@ async def screenshot(cvid: str, retry: int = config.retry, quality=75) -> bytes:
             # 专栏被删除或者进审核了
             if page.url == "https://www.bilibili.com/404":
                 raise NotFindAbortError(f"cv{cvid} 专栏不存在")
-            content = await page.query_selector(
-                ".bili-opus-view"
-            )
-            # await page.wait_for_timeout(200000000)
-            input()
+            content = await page.query_selector(".bili-opus-view")
             assert content
             clip = await content.bounding_box()
             assert clip
@@ -49,29 +45,29 @@ async def screenshot(cvid: str, retry: int = config.retry, quality=75) -> bytes:
             else:
                 logger.warning(f"专栏 cv{cvid} 截图失败, 可能是专栏过长无法截图")
                 raise AbortError(f"cv{cvid} 专栏截图失败")
-        except CaptchaAbortError:
-            raise
-        except TimeoutError:
+    except CaptchaAbortError:
+        raise
+    except TimeoutError:
+        if retry:
+            logger.error(f"专栏 cv{cvid} 截图超时, 重试...")
+            return await screenshot(cvid, retry=retry - 1)
+        raise AbortError(f"cv{cvid} 专栏截图超时")
+    except NotFindAbortError:
+        if retry:
+            logger.error(f"专栏 cv{cvid} 不存在, 3秒后重试...")
+            await asyncio.sleep(3)
+            return await screenshot(cvid, retry=retry - 1)
+        raise
+    except Exception as e:  # noqa
+        if "waiting until" in str(e):
             if retry:
-                logger.error(f"专栏 cv{cvid} 截图超时, 重试...")
-                return await screenshot(cvid, retry=retry - 1)
-            raise AbortError(f"cv{cvid} 专栏截图超时")
-        except NotFindAbortError:
-            if retry:
-                logger.error(f"专栏 cv{cvid} 不存在, 3秒后重试...")
+                logger.error(f"专栏 cv{cvid} 截图超时, 3秒后重试...")
                 await asyncio.sleep(3)
                 return await screenshot(cvid, retry=retry - 1)
-            raise
-        except Exception as e:  # noqa
-            if "waiting until" in str(e):
-                if retry:
-                    logger.error(f"专栏 cv{cvid} 截图超时, 3秒后重试...")
-                    await asyncio.sleep(3)
-                    return await screenshot(cvid, retry=retry - 1)
-                raise AbortError(f"cv{cvid} 专栏截图超时")
-            else:
-                capture_exception(e) if config.sentry_dsn else None
-                if retry:
-                    logger.exception(f"专栏 cv{cvid} 截图失败, 重试...")
-                    return await screenshot(cvid, retry=retry - 1)
-                raise AbortError(f"cv{cvid} 专栏截图失败")
+            raise AbortError(f"cv{cvid} 专栏截图超时")
+        else:
+            capture_exception(e) if config.sentry_dsn else None
+            if retry:
+                logger.exception(f"专栏 cv{cvid} 截图失败, 重试...")
+                return await screenshot(cvid, retry=retry - 1)
+            raise AbortError(f"cv{cvid} 专栏截图失败")

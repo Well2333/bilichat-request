@@ -1,12 +1,10 @@
+import sys
+
 from loguru import logger
 from playwright.async_api import Browser, Error, Playwright, async_playwright
 
-from ...config import config
+from ...config import config, nonebot_env
 from .install_browser import install_browser
-
-# import importlib.util
-# if importlib.util.find_spec("nonebot_plugin_htmlrender"):
-#     from nonebot_plugin_htmlrender.browser import get_browser
 
 _browser: Browser | None = None
 _playwright: Playwright | None = None
@@ -35,17 +33,24 @@ async def launch_browser(**kwargs) -> Browser:
     return await _playwright.firefox.launch(headless=False, **kwargs)
 
 
-async def get_browser(**kwargs) -> Browser:
-    return _browser if _browser and _browser.is_connected() else await init(**kwargs)
+if nonebot_env and "nonebot_plugin_htmlrender" in sys.modules:
+    from nonebot_plugin_htmlrender import get_browser
+
+else:
+
+    async def get_browser(**kwargs) -> Browser:
+        return (
+            _browser if _browser and _browser.is_connected() else await init(**kwargs)
+        )
 
 
-async def shutdown_browser():
-    global _browser
-    global _playwright
-    if _browser:
-        if _browser.is_connected():
-            await _browser.close()
-        _browser = None
-    if _playwright:
-        # await _playwright.stop()
-        _playwright = None
+# async def shutdown_browser():
+#    global _browser
+#    global _playwright
+#    if _browser:
+#        if _browser.is_connected():
+#            await _browser.close()
+#        _browser = None
+#    if _playwright:
+#        # await _playwright.stop()
+#        _playwright = None

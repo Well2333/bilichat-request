@@ -1,15 +1,22 @@
+import asyncio
 import contextlib
 import json
+from asyncio import Lock
+from datetime import datetime
 from pathlib import Path
 from typing import Any
-from asyncio import Lock
-import asyncio
 
 from loguru import logger
+from typing_extensions import TypedDict
 
 from .adapters.web import WebRequester
-from .config import data_path, config
+from .config import config, data_path, tz
 from .exceptions import ResponseCodeError
+
+
+class Note(TypedDict):
+    create_time: str
+    source: str
 
 
 class WebAccount:
@@ -18,11 +25,18 @@ class WebAccount:
     cookies: dict[str, Any]
     web_requester: WebRequester
     file_path: Path
+    note: Note
 
-    def __init__(self, uid: str | int, cookies: dict[str, Any]):
+    def __init__(
+        self, uid: str | int, cookies: dict[str, Any], note: Note | None = None
+    ):
         self.lock = Lock()
         self.uid = int(uid)
         self.cookies = cookies
+        self.note = note or {
+            "create_time": datetime.now(tz=tz).isoformat(timespec="seconds"),
+            "source": "",
+        }
         self.web_requester = WebRequester(
             cookies=self.cookies, update_callback=self.update
         )
@@ -30,13 +44,19 @@ class WebAccount:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self.save()
 
+    def dump(self) -> dict[str, Any]:
+        return {
+            "uid": self.uid,
+            "note": self.note,
+            "cookies": self.cookies,
+        }
+
     def save(self) -> None:
         self.file_path.write_text(
             json.dumps(
-                {
-                    "uid": self.uid,
-                    "cookies": self.cookies,
-                }
+                self.dump(),
+                indent=4,
+                ensure_ascii=False,
             ),
             encoding="utf-8",
         )
@@ -110,7 +130,7 @@ async def get_web_account(account_uid: int | None = None):
                     break
             except StopIteration:
                 await asyncio.sleep(0.2)
-                
+
     await web_account.check_alive()
     logger.trace(f"锁定 <{web_account.uid}>")
     try:
