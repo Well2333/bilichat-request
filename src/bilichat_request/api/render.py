@@ -1,7 +1,8 @@
 from fastapi import APIRouter, Response
 
-from ..functions.render import column, dynamic
-from ..functions.render.video import style_blue
+from bilichat_request.functions.render import column, dynamic
+from bilichat_request.functions.render.video import style_blue
+
 from .base import error_handler
 
 router = APIRouter()
@@ -24,7 +25,5 @@ async def render_column(cvid: int | str, quality: int = 75):
 
 @router.get("/dynamic")
 @error_handler
-async def render_dynamic(dynamic_id: str, mobile_style: bool = True, quality: int = 75):
-    return Response(
-        await dynamic.screenshot(dynamic_id, mobile_style=mobile_style, quality=quality)
-    )
+async def render_dynamic(dynamic_id: str, quality: int = 75, *, mobile_style: bool = True):
+    return Response(await dynamic.screenshot(dynamic_id, mobile_style=mobile_style, quality=quality))

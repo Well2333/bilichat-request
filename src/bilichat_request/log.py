@@ -25,7 +25,7 @@ LOGGING_CONFIG = {
 
 
 class LoguruHandler(logging.Handler):  # pragma: no cover
-    """logging 与 loguru 之间的桥梁，将 logging 的日志转发到 loguru。"""
+    """logging 与 loguru 之间的桥梁, 将 logging 的日志转发到 loguru。"""
 
     def emit(self, record: logging.LogRecord):
         try:

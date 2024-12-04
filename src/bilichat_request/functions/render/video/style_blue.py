@@ -6,8 +6,9 @@ import jinja2
 from qrcode.image.pure import PyPNGImage
 from qrcode.main import QRCode
 
-from ....adapters.browser import get_new_page, pw_font_injecter
-from ....config import static_dir
+from bilichat_request.adapters.browser import get_new_page, pw_font_injecter
+from bilichat_request.config import static_dir
+
 from . import VideoImage
 
 style_bule = static_dir.joinpath("style_blue")
@@ -47,32 +48,27 @@ async def screenshot(
     template_env = jinja2.Environment(
         loader=jinja2.FileSystemLoader(style_bule),
         enable_async=True,
+        autoescape=True,
     )
-    template_path = (
-        f"file:///{style_bule.joinpath('video-details.html').absolute()}".replace(
-            "////", "///"
-        )
-    )
+    template_path = f"file:///{style_bule.joinpath('video-details.html').absolute()}".replace("////", "///")
     template = template_env.get_template("video-details.html")
     html = await template.render_async(
-        **{
-            "cover_image": f"data:image/png;base64,{base64.b64encode(video_info.cover.getvalue()).decode()}",
-            "video_category": video_info.type_name,
-            "video_duration": video_time,
-            "up_infos": ups,
-            "video_title": video_info.title,
-            "view_count": video_info.view,
-            "dm_count": video_info.danmaku,
-            "reply_count": video_info.reply,
-            "upload_date": video_info.pubdate.strftime("%Y-%m-%d"),
-            "av_number": video_info.aid,
-            "video_summary": video_info.desc.replace("\n", "<br>"),
-            "like_count": video_info.like,
-            "coin_count": video_info.coin,
-            "fav_count": video_info.favorite,
-            "share_count": video_info.share,
-            "qr_code_image": f"data:image/png;base64,{base64.b64encode(qr_image.getvalue()).decode()}",
-        }
+        cover_image=f"data:image/png;base64,{base64.b64encode(video_info.cover.getvalue()).decode()}",
+        video_category=video_info.type_name,
+        video_duration=video_time,
+        up_infos=ups,
+        video_title=video_info.title,
+        view_count=video_info.view,
+        dm_count=video_info.danmaku,
+        reply_count=video_info.reply,
+        upload_date=video_info.pubdate.strftime("%Y-%m-%d"),
+        av_number=video_info.aid,
+        video_summary=video_info.desc.replace("\n", "<br>"),
+        like_count=video_info.like,
+        coin_count=video_info.coin,
+        fav_count=video_info.favorite,
+        share_count=video_info.share,
+        qr_code_image=f"data:image/png;base64,{base64.b64encode(qr_image.getvalue()).decode()}",
     )
 
     async with get_new_page() as page:

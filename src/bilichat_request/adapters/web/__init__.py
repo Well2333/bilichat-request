@@ -9,8 +9,8 @@ from httpx import AsyncClient
 from httpx._types import URLTypes
 from loguru import logger
 
-from ...config import config
-from ...exceptions import ResponseCodeError
+from bilichat_request.config import config
+from bilichat_request.exceptions import ResponseCodeError
 
 DEFAULT_HEADERS = {
     "User-Agent": (
@@ -32,10 +32,8 @@ class WebRequester:
         update_callback: Callable[[dict[str, Any]], bool],
         headers: dict[str, str] | None = None,
         **kwargs,
-    ):
-        self.client: AsyncClient = AsyncClient(
-            follow_redirects=True, headers=DEFAULT_HEADERS, **kwargs
-        )
+    ) -> None:
+        self.client: AsyncClient = AsyncClient(follow_redirects=True, headers=DEFAULT_HEADERS, **kwargs)
         self.cookies = cookies
         self.update_callback = update_callback
 
@@ -49,20 +47,20 @@ class WebRequester:
         self,
         method: str,
         url: URLTypes,
-        params: dict[str, Any] = {},
-        raw: bool = False,
+        params: dict[str, Any] | None = None,
         retry: int = config.retry,
         *args,
+        raw: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
+        if params is None:
+            params = {}
         if not self._inited:
             await self._init()
         await self._sign_params(params)
 
         try:
-            resp = await self.client.request(
-                method, url, params=params, cookies=self.cookies, *args, **kwargs
-            )
+            resp = await self.client.request(method, url, params=params, cookies=self.cookies, *args, **kwargs)  # noqa: B026
             self.update_callback(dict(resp.cookies))
             resp.encoding = "utf-8"
             if resp.status_code == 200:
@@ -82,7 +80,7 @@ class WebRequester:
                     raise ResponseCodeError(
                         code=raw_json["code"],
                         msg=raw_json["message"],
-                        data=raw_json.get("data", None),
+                        data=raw_json.get("data", {}),
                     )
                 self._salt = await self._get_salt()
                 return await self.request(method, url, retry=retry, **kwargs)
@@ -90,36 +88,40 @@ class WebRequester:
                 raise ResponseCodeError(
                     code=raw_json["code"],
                     msg=raw_json["message"],
-                    data=raw_json.get("data", None),
+                    data=raw_json.get("data", {}),
                 )
             return raw_json["data"]
         except Exception as e:
-            logger.exception(f"请求失败：{e}")
-            raise e
+            logger.exception(f"请求失败: {e}")
+            raise
 
     async def get(
         self,
         url: URLTypes,
-        params: dict[str, Any] = {},
-        raw: bool = False,
+        params: dict[str, Any] | None = None,
         retry: int = config.retry,
         *args,
+        raw: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
-        return await self.request("GET", url, params, raw, retry, *args, **kwargs)
+        if params is None:
+            params = {}
+        return await self.request("GET", url, params, retry, *args, raw=raw, **kwargs)
 
     async def post(
         self,
         url: URLTypes,
-        params: dict[str, Any] = {},
-        raw: bool = False,
+        params: dict[str, Any] | None = None,
         retry: int = config.retry,
         *args,
+        raw: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
-        return await self.request("POST", url, params, raw, retry, *args, **kwargs)
+        if params is None:
+            params = {}
+        return await self.request("POST", url, params, retry, *args, raw=raw, **kwargs)
 
-    async def _init(self):
+    async def _init(self) -> None:
         resp = await self.client.request(
             "GET",
             "https://data.bilibili.com/v/",
@@ -133,12 +135,10 @@ class WebRequester:
         params["local_id"] = local_id
         params["appkey"] = APPKEY
         params["ts"] = int(time.time())
-        params["sign"] = md5(
-            f"{urlencode(sorted(params.items()))}{APPSEC}".encode()
-        ).hexdigest()
+        params["sign"] = md5(f"{urlencode(sorted(params.items()))}{APPSEC}".encode()).hexdigest()
         return params
 
-    async def _get_salt(self):
+    async def _get_salt(self) -> str:
         resp = await self.client.request(
             "GET",
             "https://api.bilibili.com/x/web-interface/nav",
@@ -165,8 +165,8 @@ class WebRequester:
     async def _encrypt_w_rid(self, params: str | dict) -> tuple[str, str]:
         """传入参数字符串返回签名和时间tuple[w_rid,wts]
         -----------
-        params:str格式：qn=32&fnver=0&fnval=4048&fourk=1&voice_balance=1&gaia_source=pre-load&avid=593238479&bvid=BV16q4y1k7mq&cid=486645610\n
-        params:dict格式：{'qn': '32', 'fnver': '0', 'fnval': '4048', 'fourk': '1', 'voice_balance': '1', 'gaia_source': 'pre-load', 'avid': '593238479', 'bvid': 'BV16q4y1k7mq', 'cid': '486645610'}：
+        params:str格式: qn=32&fnver=0&fnval=4048&fourk=1&voice_balance=1&gaia_source=pre-load&avid=593238479&bvid=BV16q4y1k7mq&cid=486645610\n
+        params:dict格式: {'qn': '32', 'fnver': '0', 'fnval': '4048', 'fourk': '1', 'voice_balance': '1', 'gaia_source': 'pre-load', 'avid': '593238479', 'bvid': 'BV16q4y1k7mq', 'cid': '486645610'}:
         """
         wts = str(int(time.time()))
         if isinstance(params, str):
@@ -175,16 +175,14 @@ class WebRequester:
             params["wts"] = wts
             params_list = [f"{key}={value}" for key, value in params.items()]
         else:
-            raise Exception(f"invalid type of e:{type(params)}")
+            raise TypeError(f"invalid type of e:{type(params)}")
         params_list.sort()
         if self._salt is None:
             _salt = await self._get_salt()
-        w_rid = md5(
-            ("&".join(params_list) + _salt).encode(encoding="utf-8")
-        ).hexdigest()
+        w_rid = md5(("&".join(params_list) + _salt).encode(encoding="utf-8")).hexdigest()
         return w_rid, wts
 
-    async def _sign_params(self, params: dict[str, Any]):
+    async def _sign_params(self, params: dict[str, Any]) -> None:
         params.pop("w_rid", "")
         params.pop("wts", "")
         params["token"] = params.get("token", "")
@@ -258,14 +256,12 @@ class WebRequester:
         data = {"host_mid": uid}
         headers = {
             **DEFAULT_HEADERS,
-            **{
-                "User-Agent": (
-                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                    "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 uacq"
-                ),
-                "Origin": "https://space.bilibili.com",
-                "Referer": f"https://space.bilibili.com/{uid}/dynamic",
-            },
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 uacq"
+            ),
+            "Origin": "https://space.bilibili.com",
+            "Referer": f"https://space.bilibili.com/{uid}/dynamic",
         }
         return await self.get(url, params=data, headers=headers)
 
@@ -348,6 +344,7 @@ class WebRequester:
         self,
         uid: int,
         offset: int = 0,
+        *,
         need_top: bool = False,
         **kwargs,
     ):
@@ -377,7 +374,7 @@ class WebRequester:
         }
         return await self.get(url, params=params, **kwargs)
 
-    async def get_followed_dynamics_update_info_old(self, offset=0, **kwargs):
+    async def get_followed_dynamics_update_info_old(self, offset: int = 0, **kwargs):
         """获取关注动态更新信息"""
         url = "https://api.vc.bilibili.com/dynamic_svr/v1/dynamic_svr/web_cyclic_num"
         params = {

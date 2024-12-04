@@ -2,7 +2,8 @@ from importlib.metadata import version
 
 from fastapi import APIRouter
 
-from ..config import config
+from bilichat_request.config import config
+
 from .account import router as account_router
 from .base import app
 from .render import router as render_router

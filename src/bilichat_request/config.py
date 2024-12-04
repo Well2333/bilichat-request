@@ -9,9 +9,9 @@ from pytz import timezone
 nonebot_env = "nonebot2" in sys.modules
 
 if nonebot_env:
-    logger.info("检测到 nonebot2 运行，启用兼容运行模型")
+    logger.info("检测到 nonebot2 运行, 启用兼容运行模型")
 else:
-    logger.info("未检测到 nonebot2 运行，启用独立模式")
+    logger.info("未检测到 nonebot2 运行, 启用独立模式")
 
 
 class Config(BaseModel):
@@ -25,7 +25,7 @@ class Config(BaseModel):
     playwright_download_host: str = ""
 
     # FastAPI config
-    api_host: str = "0.0.0.0"
+    api_host: str = "127.0.0.1"
     api_port: int = 8000
     api_path: str = "bilichatapi"
 

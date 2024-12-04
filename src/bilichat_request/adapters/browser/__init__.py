@@ -5,8 +5,9 @@ from loguru import logger
 from playwright.async_api import Page, Request, Route
 from yarl import URL
 
-from ...account import get_web_account
-from ...config import static_dir
+from bilichat_request.account import get_web_account
+from bilichat_request.config import static_dir
+
 from .browser_ctx import get_browser
 from .font import get_font_async
 
@@ -32,16 +33,13 @@ async def pw_font_injecter(route: Route, request: Request):
             path=await get_font_async(url.query["name"]),
             content_type=font_mime_map.get(url.suffix),
         )
-        return
     except Exception:
         logger.error(f"找不到字体 {url.query['name']}")
         await route.fallback()
 
 
 @asynccontextmanager
-async def get_new_page(
-    device_scale_factor: float = 2, mobile_style: bool = False, **kwargs
-) -> AsyncIterator[Page]:
+async def get_new_page(device_scale_factor: float = 2, *, mobile_style: bool = False, **kwargs) -> AsyncIterator[Page]:
     browser = await get_browser()
     if mobile_style:
         kwargs["user_agent"] = (

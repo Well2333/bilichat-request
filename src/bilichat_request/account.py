@@ -27,9 +27,7 @@ class WebAccount:
     file_path: Path
     note: Note
 
-    def __init__(
-        self, uid: str | int, cookies: dict[str, Any], note: Note | None = None
-    ):
+    def __init__(self, uid: str | int, cookies: dict[str, Any], note: Note | None = None) -> None:
         self.lock = Lock()
         self.uid = int(uid)
         self.cookies = cookies
@@ -37,9 +35,7 @@ class WebAccount:
             "create_time": datetime.now(tz=tz).isoformat(timespec="seconds"),
             "source": "",
         }
-        self.web_requester = WebRequester(
-            cookies=self.cookies, update_callback=self.update
-        )
+        self.web_requester = WebRequester(cookies=self.cookies, update_callback=self.update)
         self.file_path = data_path / "auth" / f"web_{self.uid}.json"
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self.save()
@@ -71,9 +67,7 @@ class WebAccount:
 
     @classmethod
     def load_from_json(cls, json_path: str | Path) -> "WebAccount":
-        auth_json: list[dict[str, Any]] | dict[str, Any] = json.loads(
-            Path(json_path).read_text(encoding="utf-8")
-        )
+        auth_json: list[dict[str, Any]] | dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
         if isinstance(auth_json, list):
             cookies = {}
             for auth_ in auth_json:
@@ -90,7 +84,6 @@ class WebAccount:
             logger.debug(f"查询 Web 账号 <{self.uid}> 存活状态")
             await self.web_requester.check_new_dynamics(0)
             logger.debug(f"Web 账号 <{self.uid}> 确认存活")
-            return True
         except ResponseCodeError as e:
             if e.code == -101:
                 logger.error(f"Web 账号 <{self.uid}> 已失效: {e}")
@@ -100,6 +93,7 @@ class WebAccount:
                 await asyncio.sleep(1)
                 await self.check_alive(retry=retry - 1)
             return False
+        return True
 
 
 def load_all_web_accounts():
@@ -116,7 +110,7 @@ async def get_web_account(account_uid: int | None = None):
         web_account = _web_accounts.get(account_uid)
         if not web_account:
             raise ValueError(f"Web 账号 <{account_uid}> 不存在")
-        while web_account.lock.locked():
+        while web_account.lock.locked():  # noqa: ASYNC110
             await asyncio.sleep(0.2)
         await web_account.lock.acquire()
     else:  # 如果没有传入 account_uid

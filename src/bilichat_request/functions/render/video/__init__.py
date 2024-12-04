@@ -1,13 +1,16 @@
 from datetime import datetime
 from io import BytesIO
+from typing import TYPE_CHECKING, ClassVar
 
 from httpx import AsyncClient
 
-from ....account import get_web_account
-from ....config import config
-from ....exceptions import NotFindAbortError, ResponseCodeError
-from .model.card import Data as CardData
-from .model.video import Data as VideoData
+from bilichat_request.account import get_web_account
+from bilichat_request.config import config, tz
+from bilichat_request.exceptions import NotFindAbortError, ResponseCodeError
+
+if TYPE_CHECKING:
+    from .model.card import Data as CardData
+    from .model.video import Data as VideoData
 
 
 def num_fmt(num: int):
@@ -46,7 +49,7 @@ class UP:
         self.title: str = title
         """合作视频中的角色"""
         self.official_verify: int = official_verify
-        """小闪电认证：-1 为无，0 为个人，1 为企业"""
+        """小闪电认证: -1 为无, 0 为个人, 1 为企业"""
 
     @classmethod
     async def from_card(cls, card: dict, title: str = "UP主") -> "UP":  # type: ignore
@@ -58,9 +61,7 @@ class UP:
         official_verify = card["card"]["official_verify"]["type"]
         face_req = await AsyncClient(follow_redirects=True).get(card["card"]["face"])
         if face_req.status_code == 404:
-            face_req = await AsyncClient(follow_redirects=True).get(
-                "https://i0.hdslb.com/bfs/face/member/noface.jpg"
-            )
+            face_req = await AsyncClient(follow_redirects=True).get("https://i0.hdslb.com/bfs/face/member/noface.jpg")
         face = face_req.content
         return cls(
             name=name,
@@ -74,8 +75,10 @@ class UP:
         )
 
 
+
+
 class VideoImage:
-    _render_methods = {}
+    _render_methods: ClassVar[dict] = {}
 
     def __init__(
         self,
@@ -95,7 +98,7 @@ class VideoImage:
         b23_url: str,
         aid: str,
         desc: str | None = None,
-    ):
+    ) -> None:
         self.cover: BytesIO = cover if isinstance(cover, BytesIO) else BytesIO(cover)
         """视频封面"""
         minutes, self.seconds = divmod(duration, 60)
@@ -138,13 +141,13 @@ class VideoImage:
     ) -> "VideoImage":
         async with get_web_account() as account:
             try:
-                data: VideoData = await account.web_requester.get_video_info(video_id)  # type: ignore
+                data: VideoData = await account.web_requester.get_video_info(video_id) # type: ignore
             except ResponseCodeError as e:
                 if e.code == -404:
-                    raise NotFindAbortError(f"找不到视频 {video_id}")
+                    raise NotFindAbortError(f"找不到视频 {video_id}") from e
                 if retry:
                     return await cls.get(video_id, b23_url, retry - 1)
-                raise e
+                raise
             b23_url = b23_url or await account.web_requester.get_b23_url(data["bvid"])
         # 获取封面
         async with AsyncClient() as client:
@@ -164,13 +167,13 @@ class VideoImage:
             ups = []
             # 合作视频(UP在第一个)
             if staffs := data.get("staff"):
-                for staff in staffs:
-                    ups.append(
-                        await UP.from_card(
-                            await account.web_requester.get_user_card(staff["mid"]),
-                            staff["title"],
-                        )
-                    )
+                ups.extend(
+                    [
+                        await UP.from_card(await account.web_requester.get_user_card(staff["mid"]), staff["title"])
+                        for staff in staffs
+                    ]
+                )
+
             # 单人视频
             else:
                 ups.append(
@@ -192,14 +195,14 @@ class VideoImage:
             like=num_fmt(data["stat"]["like"]),
             reply=num_fmt(data["stat"]["reply"]),
             share=num_fmt(data["stat"]["share"]),
-            pubdate=datetime.fromtimestamp(data["pubdate"]),
+            pubdate=datetime.fromtimestamp(data["pubdate"], tz=tz),
             uploaders=ups,
             b23_url=b23_url,
             aid=f"av{data['aid']}",
         )
 
     @staticmethod
-    def get_up_level_code(level: int):
+    def get_up_level_code(level: int) -> tuple[str, tuple[int, int, int]]:
         if level == 0:
             up_level = "\ue6cb"
             level_color = (191, 191, 191)

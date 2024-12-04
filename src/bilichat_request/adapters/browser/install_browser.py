@@ -50,7 +50,8 @@ async def install_browser(
     cde_raw = compute_driver_executable()
     cde = [cde_raw.as_posix()] if isinstance(cde_raw, Path) else list(cde_raw)
 
-    command = cde + [
+    command = [
+        *cde,
         "install",
         "--with-deps",
         browser_type,
@@ -69,18 +70,14 @@ async def install_browser(
             f"Start download Playwright for {browser_type} with dependencies, may require you to access sudo.",
         )
 
-    shell = await asyncio.create_subprocess_exec(
-        *command, stdout=asyncio.subprocess.PIPE, env=env
-    )
+    shell = await asyncio.create_subprocess_exec(*command, stdout=asyncio.subprocess.PIPE, env=env)
     returncode = None
 
     assert shell.stdout
 
     progress: Progress | None = None
 
-    while line := re.sub(
-        "\x1b.*?m", "", (await shell.stdout.readline()).decode("UTF-8")
-    ):
+    while line := re.sub("\x1b.*?m", "", (await shell.stdout.readline()).decode("UTF-8")):
         if "Downloading" in line:
             progress = Progress(line[12:-1])
         if percent := re.findall("(\\d+)%", line):
@@ -91,9 +88,7 @@ async def install_browser(
             p = p.groupdict()
             log(
                 "success",
-                "Downloaded [cyan]{file}[/] to [magenta]{path}[/]".format(
-                    file=p["file"], path=p["path"]
-                ),
+                "Downloaded [cyan]{file}[/] to [magenta]{path}[/]".format(file=p["file"], path=p["path"]),
             )
         elif line == "Failed to install browsers\n":
             message = await shell.stdout.read()

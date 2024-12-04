@@ -3,7 +3,8 @@ import sys
 from loguru import logger
 from playwright.async_api import Browser, Error, Playwright, async_playwright
 
-from ...config import config, nonebot_env
+from bilichat_request.config import config, nonebot_env
+
 from .install_browser import install_browser
 
 _browser: Browser | None = None
@@ -11,8 +12,8 @@ _playwright: Playwright | None = None
 
 
 async def init(**kwargs) -> Browser:
-    global _browser
-    global _playwright
+    global _browser  # noqa: PLW0603
+    global _playwright  # noqa: PLW0603
     _playwright = await async_playwright().start()
     try:
         _browser = await launch_browser(**kwargs)

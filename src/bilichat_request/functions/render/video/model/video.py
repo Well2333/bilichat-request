@@ -6,12 +6,12 @@ class Vip(TypedDict):
     成员的大会员状态。
     """
 
-    type: int  # 成员会员类型，0：无，1：月会员，2：年会员
-    status: int  # 会员状态，0：无，1：有
-    due_date: int  # 到期时间，UNIX 毫秒时间戳
-    vip_pay_type: int  # 会员支付类型，作用尚不明确
-    theme_type: int  # 会员主题类型，通常为0
-    label: dict[str, str]|None  # 会员标签信息，作用尚不明确
+    type: int  # 成员会员类型, 0: 无, 1: 月会员, 2: 年会员
+    status: int  # 会员状态, 0: 无, 1: 有
+    due_date: int  # 到期时间, UNIX 毫秒时间戳
+    vip_pay_type: int  # 会员支付类型, 作用尚不明确
+    theme_type: int  # 会员主题类型, 通常为0
+    label: dict[str, str]|None  # 会员标签信息, 作用尚不明确
 
 
 class Official(TypedDict):
@@ -19,10 +19,10 @@ class Official(TypedDict):
     成员的官方认证信息。
     """
 
-    role: int  # 成员认证级别，参考[用户认证类型一览](../user/official_role.md)
-    title: str  # 成员认证名，若没有则为空
-    desc: str  # 成员认证备注，若没有则为空
-    type: int  # 成员认证类型，-1：无，0：有认证
+    role: int  # 成员认证级别, 参考[用户认证类型一览](../user/official_role.md)
+    title: str  # 成员认证名, 若没有则为空
+    desc: str  # 成员认证备注, 若没有则为空
+    type: int  # 成员认证类型, -1: 无, 0: 有认证
 
 
 class StaffMember(TypedDict):
@@ -37,7 +37,7 @@ class StaffMember(TypedDict):
     vip: Vip  # 成员大会员状态
     official: Official  # 成员认证信息
     follower: int  # 成员粉丝数
-    label_style: int|None  # 作用尚不明确，具体含义不清楚
+    label_style: int|None  # 作用尚不明确, 具体含义不清楚
 
 
 class HonorReply(TypedDict):
@@ -55,13 +55,13 @@ class SubtitleAuthor(TypedDict):
 
     mid: int  # 字幕上传者mid
     name: str  # 字幕上传者昵称
-    sex: str  # 字幕上传者性别，值为'男'，'女'，'保密'
+    sex: str  # 字幕上传者性别, 值为'男', '女', '保密'
     face: str  # 字幕上传者头像url
     sign: str  # 字幕上传者签名
-    rank: int  # 会员等级，作用尚不明确
-    birthday: int  # 生日，作用尚不明确
-    is_fake_account: int  # 是否为假账号，作用尚不明确
-    is_deleted: int  # 是否已删除，作用尚不明确
+    rank: int  # 会员等级, 作用尚不明确
+    birthday: int  # 生日, 作用尚不明确
+    is_fake_account: int  # 是否为假账号, 作用尚不明确
+    is_deleted: int  # 是否已删除, 作用尚不明确
 
 
 class SubtitlelistItem(TypedDict):
@@ -80,7 +80,7 @@ class SubtitlelistItem(TypedDict):
 
 class Subtitle(TypedDict):
     """
-    字幕信息对象，包括是否允许提交字幕及字幕列表。
+    字幕信息对象, 包括是否允许提交字幕及字幕列表。
     """
 
     allow_submit: bool  # 是否允许提交字幕
@@ -89,12 +89,12 @@ class Subtitle(TypedDict):
 
 class Dimension(TypedDict):
     """
-    视频分辨率信息，包括宽度、高度和旋转信息。
+    视频分辨率信息, 包括宽度、高度和旋转信息。
     """
 
     width: int  # 分辨率宽度
     height: int  # 分辨率高度
-    rotate: int  # 旋转标志，0表示正常，1表示对换宽高
+    rotate: int  # 旋转标志, 0表示正常, 1表示对换宽高
 
 
 class Page(TypedDict):
@@ -103,13 +103,13 @@ class Page(TypedDict):
     """
 
     cid: int  # 分P cid
-    page: int  # 分P序号，从1开始
-    from_: str  # 视频来源，vupload：普通上传，hunan：芒果TV，qq：腾讯
+    page: int  # 分P序号, 从1开始
+    from_: str  # 视频来源, vupload: 普通上传, hunan: 芒果TV, qq: 腾讯
     part: str  # 分P标题
-    duration: int  # 分P持续时间，单位为秒
-    vid: str | None  # 站外视频vid，只有站外视频有效
-    weblink: str | None  # 站外视频跳转url，只有站外视频有效
-    dimension: Dimension | None  # 当前分P分辨率，部分较老视频无分辨率值
+    duration: int  # 分P持续时间, 单位为秒
+    vid: str | None  # 站外视频vid, 只有站外视频有效
+    weblink: str | None  # 站外视频跳转url, 只有站外视频有效
+    dimension: Dimension | None  # 当前分P分辨率, 部分较老视频无分辨率值
 
 
 class Rights(TypedDict):
@@ -162,9 +162,9 @@ class Stat(TypedDict):
     now_rank: int  # 当前排名
     his_rank: int  # 历史最高排名
     like: int  # 获赞数
-    dislike: int  # 点踩数，恒为0
+    dislike: int  # 点踩数, 恒为0
     evaluation: str  # 视频评分
-    vt: int  # 作用尚不明确，恒为0
+    vt: int  # 作用尚不明确, 恒为0
 
 
 class Data(TypedDict):
@@ -180,22 +180,22 @@ class Data(TypedDict):
     copyright: int  # 视频类型
     pic: str  # 稿件封面图片url
     title: str  # 稿件标题
-    pubdate: int  # 稿件发布时间，秒级时间戳
-    ctime: int  # 用户投稿时间，秒级时间戳
+    pubdate: int  # 稿件发布时间, 秒级时间戳
+    ctime: int  # 用户投稿时间, 秒级时间戳
     desc: str  # 视频简介
     desc_v2: list[dict[str, int]]  # 新版视频简介
     state: int  # 视频状态
-    duration: int  # 稿件总时长，单位为秒
-    forward: int | None  # 撞车视频跳转avid，仅撞车视频存在此字段
+    duration: int  # 稿件总时长, 单位为秒
+    forward: int | None  # 撞车视频跳转avid, 仅撞车视频存在此字段
     mission_id: int | None  # 稿件参与的活动id
-    redirect_url: str | None  # 重定向url，仅番剧或影视视频存在此字段
+    redirect_url: str | None  # 重定向url, 仅番剧或影视视频存在此字段
     rights: Rights  # 视频属性标志
     owner: Owner  # 视频UP主信息
     stat: Stat  # 视频状态数
     dynamic: str  # 视频同步发布的动态文字内容
     cid: int  # 视频1P cid
     dimension: Dimension  # 视频1P分辨率
-    premiere: None | None  # 为空
+    premiere: None   # 为空
     teenage_mode: int | None  # 用于青少年模式
     is_chargeable_season: bool | None  # 是否可收费季节
     is_story: bool | None  # 是否在Story Mode展示

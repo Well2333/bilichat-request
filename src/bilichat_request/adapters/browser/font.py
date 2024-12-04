@@ -6,7 +6,7 @@ import httpx
 from loguru import logger
 from yarl import URL
 
-from ...config import data_path
+from bilichat_request.config import data_path
 
 DEFAULT_DYNAMIC_FONT = "HarmonyOS_Sans_SC_Medium.ttf"
 
@@ -21,10 +21,9 @@ def check_font_path(font: str, url: URL):
         if font_path.joinpath(url.name).exists():
             logger.debug(f"Font {url.name} found in local")
             return font_path.joinpath(url.name)
-    else:
-        if font_path.joinpath(font).exists():
-            logger.debug(f"Font {font} found in local")
-            return font_path.joinpath(font)
+    elif font_path.joinpath(font).exists():
+        logger.debug(f"Font {font} found in local")
+        return font_path.joinpath(font)
     return None
 
 
@@ -35,17 +34,16 @@ async def get_font_async(font: str = DEFAULT_DYNAMIC_FONT):
 
     if font_file_path:
         return font_file_path
+    elif url.is_absolute():
+        logger.warning(f"Font {font} does not exist, downloading...")
+        async with httpx.AsyncClient() as client:
+            resp = await client.get(font)
+            if resp.status_code != 200:
+                raise ConnectionError(f"Font {font} failed to download")
+            font_path.joinpath(url.name).write_bytes(resp.content)
+            return font_path.joinpath(url.name)
     else:
-        if url.is_absolute():
-            logger.warning(f"Font {font} does not exist, downloading...")
-            async with httpx.AsyncClient() as client:
-                resp = await client.get(font)
-                if resp.status_code != 200:
-                    raise ConnectionError(f"Font {font} failed to download")
-                font_path.joinpath(url.name).write_bytes(resp.content)
-                return font_path.joinpath(url.name)
-        else:
-            raise FileNotFoundError(f"Font {font} does not exist")
+        raise FileNotFoundError(f"Font {font} does not exist")
 
 
 def get_font_sync(font: str = DEFAULT_DYNAMIC_FONT):
@@ -55,17 +53,16 @@ def get_font_sync(font: str = DEFAULT_DYNAMIC_FONT):
 
     if font_file_path:
         return font_file_path
+    elif url.is_absolute():
+        logger.warning(f"Font {font} does not exist, downloading...")
+        with httpx.Client() as client:
+            resp = client.get(font)
+            if resp.status_code != 200:
+                raise ConnectionError(f"Font {font} failed to download")
+            font_path.joinpath(url.name).write_bytes(resp.content)
+            return font_path.joinpath(url.name)
     else:
-        if url.is_absolute():
-            logger.warning(f"Font {font} does not exist, downloading...")
-            with httpx.Client() as client:
-                resp = client.get(font)
-                if resp.status_code != 200:
-                    raise ConnectionError(f"Font {font} failed to download")
-                font_path.joinpath(url.name).write_bytes(resp.content)
-                return font_path.joinpath(url.name)
-        else:
-            raise FileNotFoundError(f"Font {font} does not exist")
+        raise FileNotFoundError(f"Font {font} does not exist")
 
 
 def font_init():

@@ -2,7 +2,8 @@ from typing import Any
 
 from fastapi import APIRouter, HTTPException, Response
 
-from ..account import Note, WebAccount, _web_accounts
+from bilichat_request.account import Note, WebAccount, _web_accounts
+
 from .base import error_handler
 
 router = APIRouter()
@@ -38,7 +39,7 @@ async def add_web_account(
             return Response(status_code=201, content=acc.dump())
         raise ValueError(f"无法解析的 cookies 数据: {cookies}")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=str(e))
+        raise HTTPException(status_code=400, detail=str(e)) from e
 
 
 @router.post("/web_account/delete")

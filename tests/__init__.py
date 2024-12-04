@@ -36,7 +36,7 @@ async def test_video_shot():
 
 # run all tests
 loop = asyncio.get_event_loop()
-# loop.run_until_complete(test_request())
-# loop.run_until_complete(test_column_shot())
-# loop.run_until_complete(test_dynamic_shot())
-loop.run_until_complete(test_video_shot())
+loop.run_until_complete(test_request())
+loop.run_until_complete(test_column_shot())
+loop.run_until_complete(test_dynamic_shot())
+# loop.run_until_complete(test_video_shot())
