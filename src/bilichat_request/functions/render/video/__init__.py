@@ -75,8 +75,6 @@ class UP:
         )
 
 
-
-
 class VideoImage:
     _render_methods: ClassVar[dict] = {}
 
@@ -141,7 +139,7 @@ class VideoImage:
     ) -> "VideoImage":
         async with get_web_account() as account:
             try:
-                data: VideoData = await account.web_requester.get_video_info(video_id) # type: ignore
+                data: VideoData = await account.web_requester.get_video_info(video_id)  # type: ignore
             except ResponseCodeError as e:
                 if e.code == -404:
                     raise NotFindAbortError(f"找不到视频 {video_id}") from e

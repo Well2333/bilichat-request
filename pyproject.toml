@@ -15,6 +15,11 @@ dependencies = [
     "yarl>=1.18.0",
     "uvicorn>=0.32.1",
     "pytz>=2024.2",
+    "python-jose[cryptography]>=3.3.0",
+    "passlib>=1.7.4",
+    "python-multipart>=0.0.19",
+    "pydantic[email]>=2.10.3",
+    "bcrypt>=4.2.1",
 ]
 requires-python = "==3.10.*"
 readme = "README.md"
@@ -82,7 +87,7 @@ select = [
     'INT',  # flake8-gettext
     'ARG',  # flake8-unused-arguments
     'PTH',  # flake8-use-pathlib
-    'TD',   # flake8-todos
+    # 'TD',   # flake8-todos
     'FIX',  # flake8-fixme
     'ERA',  # eradicate
     'PD',   # pandas-vet

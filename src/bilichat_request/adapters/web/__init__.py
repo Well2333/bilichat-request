@@ -251,7 +251,8 @@ class WebRequester:
         return await self.get(url, params=data)
 
     async def get_user_dynamics(self, uid: int):
-        """根据 UID 获取动态信息"""
+        """从 UP 主页获取动态信息
+        https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/dynamic/space.md#获取用户空间动态"""
         url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
         data = {"host_mid": uid}
         headers = {
@@ -266,7 +267,8 @@ class WebRequester:
         return await self.get(url, params=data, headers=headers)
 
     async def get_all_dynamics_list(self, offset: int = 0):
-        """https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/dynamic/all.md#获取全部动态列表"""
+        """获取该账号订阅的全部动态
+        https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/dynamic/all.md#获取全部动态列表"""
         url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/all"
         params = {
             "offset_dynamic_id": offset,
@@ -337,6 +339,15 @@ class WebRequester:
             "mid": uid,
         }
         return await self.get(url, params=params)
+
+    async def get_rooms_info_by_uids(
+        self,
+        uids: list[int | str],
+    ):
+        """根据 UID 批量获取直播间信息"""
+        url = "https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids"
+        data = {"uids": uids}
+        return await self.post(url, params=data)
 
     # 以下为旧接口
 

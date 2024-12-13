@@ -19,7 +19,6 @@ app.add_middleware(
 )
 
 
-
 def error_handler(func: Callable):
     @wraps(func)
     async def wrapper(*args, **kwargs):  # noqa: ANN202
@@ -35,6 +34,7 @@ def error_handler(func: Callable):
         except Exception as e:
             logger.exception(e)
             raise HTTPException(status_code=500, detail=e) from e
+
     return wrapper
 
 
@@ -45,9 +45,7 @@ if nonebot_env:
 
     driver: FastAPIDriver = nonebot.get_driver()  # type: ignore
 
-    if not isinstance(driver, ReverseDriver) or not isinstance(
-        driver.server_app, FastAPI
-    ):
+    if not isinstance(driver, ReverseDriver) or not isinstance(driver.server_app, FastAPI):
         raise NotImplementedError("Only FastAPI reverse driver is supported.")
 
     driver.server_app.mount(f"/{config.api_path}", app, name="bilichat_api")

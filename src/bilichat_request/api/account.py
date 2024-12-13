@@ -17,9 +17,7 @@ async def get_web_account():
 
 @router.post("/web_account/create")
 @error_handler
-async def add_web_account(
-    uid: int, cookies: list[dict[str, Any]] | dict[str, Any], note: Note | None = None
-):
+async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, Any], note: Note | None = None):
     try:
         if isinstance(cookies, list):
             cookies_ = {}

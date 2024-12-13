@@ -11,7 +11,7 @@ class Vip(TypedDict):
     due_date: int  # 到期时间, UNIX 毫秒时间戳
     vip_pay_type: int  # 会员支付类型, 作用尚不明确
     theme_type: int  # 会员主题类型, 通常为0
-    label: dict[str, str]|None  # 会员标签信息, 作用尚不明确
+    label: dict[str, str] | None  # 会员标签信息, 作用尚不明确
 
 
 class Official(TypedDict):
@@ -37,7 +37,7 @@ class StaffMember(TypedDict):
     vip: Vip  # 成员大会员状态
     official: Official  # 成员认证信息
     follower: int  # 成员粉丝数
-    label_style: int|None  # 作用尚不明确, 具体含义不清楚
+    label_style: int | None  # 作用尚不明确, 具体含义不清楚
 
 
 class HonorReply(TypedDict):
@@ -195,7 +195,7 @@ class Data(TypedDict):
     dynamic: str  # 视频同步发布的动态文字内容
     cid: int  # 视频1P cid
     dimension: Dimension  # 视频1P分辨率
-    premiere: None   # 为空
+    premiere: None  # 为空
     teenage_mode: int | None  # 用于青少年模式
     is_chargeable_season: bool | None  # 是否可收费季节
     is_story: bool | None  # 是否在Story Mode展示

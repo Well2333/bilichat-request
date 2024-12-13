@@ -1,5 +1,6 @@
 import sys
 from pathlib import Path
+from secrets import token_urlsafe
 from typing import Literal
 
 from loguru import logger
@@ -15,9 +16,7 @@ else:
 
 
 class Config(BaseModel):
-    log_level: Literal[
-        "TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"
-    ] = "TRACE"
+    log_level: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "TRACE"
     retry: int = 3
     data_path: str = "data"
     sentry_dsn: str = ""
@@ -28,7 +27,11 @@ class Config(BaseModel):
     api_host: str = "127.0.0.1"
     api_port: int = 8000
     api_path: str = "bilichatapi"
+    api_access_token: str = "123"
 
+
+token = token_urlsafe(16)
+logger.info(f"API 鉴权 Token: {token}")
 
 config = Config()
 data_path = Path(config.data_path)

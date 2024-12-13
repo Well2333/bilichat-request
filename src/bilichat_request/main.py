@@ -1,10 +1,10 @@
 from uvicorn import Config, Server
 
-from .api.base import app
-from .config import config, nonebot_env
+from bilichat_request.api.base import app
+from bilichat_request.config import config, nonebot_env
 
 if not nonebot_env:
-    from .log import LOGGING_CONFIG
+    from bilichat_request.log import LOGGING_CONFIG
 
     if config.sentry_dsn:
         import sentry_sdk
@@ -23,3 +23,6 @@ if not nonebot_env:
                 log_config=LOGGING_CONFIG,
             )
         ).run()
+
+    if __name__ == "__main__":
+        main()

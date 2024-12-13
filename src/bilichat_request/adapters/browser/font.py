@@ -82,9 +82,7 @@ def font_init():
                 for chunk in r.iter_bytes():
                     font_file.write(chunk)
         with ZipFile(font_file) as z:
-            fonts = [
-                i for i in z.filelist if str(i.filename).startswith("bbot_fonts/font/")
-            ]
+            fonts = [i for i in z.filelist if str(i.filename).startswith("bbot_fonts/font/")]
             for font in fonts:
                 file_name = Path(font.filename).name
                 local_file = font_path.joinpath(file_name)

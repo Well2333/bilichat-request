@@ -40,9 +40,7 @@ if nonebot_env and "nonebot_plugin_htmlrender" in sys.modules:
 else:
 
     async def get_browser(**kwargs) -> Browser:
-        return (
-            _browser if _browser and _browser.is_connected() else await init(**kwargs)
-        )
+        return _browser if _browser and _browser.is_connected() else await init(**kwargs)
 
 
 # async def shutdown_browser():
