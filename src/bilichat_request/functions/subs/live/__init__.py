@@ -28,5 +28,5 @@ async def get_live_by_uids(ups: Sequence[int]) -> list[LiveRoom]:
             capture_exception(e)
             raise
 
-    rooms = [LiveRoom(**room) for room in status_infos.items()]  # type: ignore
+    rooms = [LiveRoom(**room) for _, room in status_infos.items()]  # type: ignore
     return rooms

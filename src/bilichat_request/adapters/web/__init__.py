@@ -1,3 +1,4 @@
+import json
 import re
 import time
 from collections.abc import Callable
@@ -346,8 +347,8 @@ class WebRequester:
     ):
         """根据 UID 批量获取直播间信息"""
         url = "https://api.live.bilibili.com/room/v1/Room/get_status_info_by_uids"
-        data = {"uids": uids}
-        return await self.post(url, params=data)
+        data = json.dumps({"uids": uids})
+        return await self.post(url, data=data)
 
     # 以下为旧接口
 

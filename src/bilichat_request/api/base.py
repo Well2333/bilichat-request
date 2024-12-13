@@ -27,13 +27,13 @@ def error_handler(func: Callable):
             return await func(*args, **kwargs)
         except NotFindAbortError as e:
             logger.warning(e)
-            raise HTTPException(status_code=404, detail=e) from e
+            raise HTTPException(status_code=404, detail={"type": str(type(e)), "detail": str(e)}) from e
         except HTTPException as e:
             logger.error(e)
             raise
         except Exception as e:
             logger.exception(e)
-            raise HTTPException(status_code=500, detail=e) from e
+            raise HTTPException(status_code=500, detail={"type": str(type(e)), "detail": str(e)}) from e
 
     return wrapper
 
