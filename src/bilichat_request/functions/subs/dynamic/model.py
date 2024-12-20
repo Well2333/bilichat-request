@@ -76,6 +76,8 @@ class Dynamic(BaseModel):
     """动态id"""
     dyn_type: DynamicType
     """动态类型"""
+    dyn_timestamp: int
+    """动态发布时间"""
 
 
 CARD_TYPE_MAP: dict[int, DynamicType] = {

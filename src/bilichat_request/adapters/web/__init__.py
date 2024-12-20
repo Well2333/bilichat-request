@@ -94,7 +94,7 @@ class WebRequester:
             return raw_json["data"]
         except Exception as e:
             logger.exception(f"请求失败: {e}")
-            raise
+            raise e
 
     async def get(
         self,
@@ -317,7 +317,8 @@ class WebRequester:
         """https://github.com/SocialSisterYi/bilibili-API-collect/blob/e5fbfed42807605115c6a9b96447f6328ca263c5/docs/video/info.md#获取视频详细信息(web端)"""
         url = "https://api.bilibili.com/x/web-interface/view"
         params = {}
-        if str(video_id).isdigit():
+        video_id = str(video_id).removeprefix("av").removeprefix("AV")
+        if video_id.isdigit():
             params["aid"] = int(video_id)
         else:
             params["bvid"] = video_id

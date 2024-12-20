@@ -25,7 +25,7 @@ class Config(BaseModel):
 
     # FastAPI config
     api_host: str = "127.0.0.1"
-    api_port: int = 8000
+    api_port: int = 40432
     api_path: str = "bilichatapi"
     api_access_token: str = "123"
 

@@ -41,7 +41,16 @@ async def get_dynamic_by_uid(up_uid: int) -> list[Dynamic]:
         resp = await account.web_requester.get_user_dynamics(up_uid)
         items = resp.get("items", [])
         if items:
-            ids.extend([Dynamic(dyn_id=int(item["id_str"]), dyn_type=item["type"]) for item in items])
+            ids.extend(
+                [
+                    Dynamic(
+                        dyn_id=int(item["id_str"]),
+                        dyn_type=item["type"],
+                        dyn_timestamp=item["modules"]["module_author"]["pub_ts"],
+                    )
+                    for item in items
+                ]
+            )
     return ids
 
 
@@ -57,6 +66,7 @@ async def get_dynamic_by_uid_old(up_uid: int) -> list[Dynamic]:
                     Dynamic(
                         dyn_id=int(card["desc"]["dynamic_id_str"]),
                         dyn_type=CARD_TYPE_MAP.get(card["desc"]["type"], DynamicType.NONE),
+                        dyn_timestamp=card["desc"]["timestamp"],
                     )
                     for card in cards
                 ]
@@ -71,5 +81,14 @@ async def get_dynamic_by_acc_sub(acc_uid: int, offset: int) -> list[Dynamic]:
         resp = await account.web_requester.get_all_dynamics_list(offset=offset)
         items = resp.get("items", [])
         if items:
-            ids.extend([Dynamic(dyn_id=int(item["id_str"]), dyn_type=item["type"]) for item in items])
+            ids.extend(
+                [
+                    Dynamic(
+                        dyn_id=int(item["id_str"]),
+                        dyn_type=item["type"],
+                        dyn_timestamp=item["modules"]["module_author"]["pub_ts"],
+                    )
+                    for item in items
+                ]
+            )
     return ids
