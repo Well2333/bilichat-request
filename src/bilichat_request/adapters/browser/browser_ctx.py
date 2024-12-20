@@ -31,7 +31,7 @@ async def launch_browser(**kwargs) -> Browser:
             "server": config.proxy,
         }
     logger.info("使用 firefox 启动")
-    return await _playwright.firefox.launch(headless=False, **kwargs)
+    return await _playwright.firefox.launch(headless=True, **kwargs)
 
 
 if nonebot_env and "nonebot_plugin_htmlrender" in sys.modules:
