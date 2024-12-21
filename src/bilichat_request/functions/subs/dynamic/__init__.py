@@ -27,7 +27,7 @@ def dyn_error_handler(func: Callable):
                 capture_exception(e)
             raise AbortError(f"获取动态状态失败: {type(e)} {e}") from e
         except Exception as e:
-            logger.exception(e)
+            logger.error(e)
             capture_exception(e)
             raise
 

@@ -1,3 +1,4 @@
+import asyncio
 from collections.abc import Callable
 from functools import wraps
 
@@ -6,7 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 
 from bilichat_request.config import config, nonebot_env
-from bilichat_request.exceptions import NotFindAbortError
+from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError, ResponseCodeError
 
 app = FastAPI()
 
@@ -25,12 +26,18 @@ def error_handler(func: Callable):
         try:
             logger.trace(f"执行请求: {func.__name__} {args} {kwargs}")
             return await func(*args, **kwargs)
+        except asyncio.TimeoutError as e:
+            logger.error(e)
+            raise HTTPException(status_code=429, detail={"type": str(type(e)), "detail": str(e)}) from e
         except NotFindAbortError as e:
             logger.warning(e)
             raise HTTPException(status_code=404, detail={"type": str(type(e)), "detail": str(e)}) from e
         except HTTPException as e:
             logger.error(e)
             raise
+        except (AbortError, ResponseCodeError, CaptchaAbortError) as e:
+            logger.error(e)
+            raise HTTPException(status_code=511, detail={"type": str(type(e)), "detail": str(e)}) from e
         except Exception as e:
             logger.exception(e)
             raise HTTPException(status_code=500, detail={"type": str(type(e)), "detail": str(e)}) from e

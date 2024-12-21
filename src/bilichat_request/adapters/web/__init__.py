@@ -93,8 +93,8 @@ class WebRequester:
                 )
             return raw_json["data"]
         except Exception as e:
-            logger.exception(f"请求失败: {e}")
-            raise e
+            logger.error(f"请求失败: {e}")
+            raise
 
     async def get(
         self,

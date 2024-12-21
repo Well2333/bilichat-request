@@ -1,6 +1,8 @@
 import asyncio
 import contextlib
 import json
+import random
+import time
 from asyncio import Lock
 from datetime import datetime
 from pathlib import Path
@@ -48,6 +50,8 @@ class WebAccount:
         }
 
     def save(self) -> None:
+        if self.uid <= 10:
+            return
         self.file_path.write_text(
             json.dumps(
                 self.dump(),
@@ -106,17 +110,20 @@ def load_all_web_accounts():
 
 @contextlib.asynccontextmanager
 async def get_web_account(account_uid: int | None = None):
+    st = time.time()
     if account_uid:  # 如果传入 account_uid
         web_account = _web_accounts.get(account_uid)
         if not web_account:
             raise ValueError(f"Web 账号 <{account_uid}> 不存在")
-        while web_account.lock.locked():  # noqa: ASYNC110
+        while web_account.lock.locked():
+            if time.time() - st > 60:
+                raise asyncio.TimeoutError(f"获取 Web 账号 {web_account} 超时")
             await asyncio.sleep(0.2)
         await web_account.lock.acquire()
-    else:  # 如果没有传入 account_uid
-        if not _web_accounts:
-            raise ValueError("无可用 Web 账号")
+    elif _web_accounts:
         while True:
+            if time.time() - st > 60:
+                raise asyncio.TimeoutError("获取 Web 账号超时")
             try:
                 web_account = next(iter(_web_accounts.values()))
                 if not web_account.lock.locked():
@@ -124,8 +131,14 @@ async def get_web_account(account_uid: int | None = None):
                     break
             except StopIteration:
                 await asyncio.sleep(0.2)
+    else:
+        web_account = WebAccount(random.randint(1, 10), {})
+        await web_account.lock.acquire()
 
-    await web_account.check_alive()
+    if web_account.uid > 10:
+        await web_account.check_alive()
+    else:
+        logger.warning(f"Web 账号 <{web_account.uid}> 为未登录账号, 请求可能会风控")
     logger.trace(f"锁定 <{web_account.uid}>")
     try:
         yield web_account

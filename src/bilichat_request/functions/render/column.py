@@ -43,7 +43,10 @@ async def screenshot(cvid: str, retry: int = config.retry, quality: int = 75) ->
             else:
                 logger.warning(f"专栏 cv{cvid} 截图失败, 可能是专栏过长无法截图")
                 raise AbortError(f"cv{cvid} 专栏截图失败")
-    except CaptchaAbortError:
+    except CaptchaAbortError as e:
+        if retry:
+            logger.error(f"专栏 cv{cvid} 截图出现验证码, 重试...")
+            return await screenshot(cvid, retry=retry - 1)
         raise
     except TimeoutError as e:
         if retry:
@@ -66,6 +69,6 @@ async def screenshot(cvid: str, retry: int = config.retry, quality: int = 75) ->
         else:
             capture_exception(e) if config.sentry_dsn else None
             if retry:
-                logger.exception(f"专栏 cv{cvid} 截图失败, 重试...")
+                logger.error(f"专栏 cv{cvid} 截图失败, 重试...")
                 return await screenshot(cvid, retry=retry - 1)
             raise AbortError(f"cv{cvid} 专栏截图失败") from e

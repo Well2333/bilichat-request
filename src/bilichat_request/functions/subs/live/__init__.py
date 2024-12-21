@@ -24,7 +24,7 @@ async def get_live_by_uids(ups: Sequence[int]) -> list[LiveRoom]:
                 capture_exception(e)
             raise AbortError(f"获取直播状态失败: {type(e)} {e}") from e
         except Exception as e:
-            logger.exception(e)
+            logger.error(e)
             capture_exception(e)
             raise
 

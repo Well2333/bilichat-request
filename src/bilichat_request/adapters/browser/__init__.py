@@ -7,6 +7,7 @@ from yarl import URL
 
 from bilichat_request.account import get_web_account
 from bilichat_request.config import static_dir
+from bilichat_request.exceptions import CaptchaAbortError
 
 from .browser_ctx import get_browser
 from .font import get_font_async
@@ -86,6 +87,8 @@ async def network_request(request: Request):
         status = "/"
         timing = "/"
     logger.debug(f"[Response] [{method} {status}] {timing}ms <<  {url}")
+    if "geetest" in url:
+        raise CaptchaAbortError("出现验证码, 请求终止")
 
 
 def network_requestfailed(request: Request):
@@ -93,3 +96,5 @@ def network_requestfailed(request: Request):
     fail = request.failure
     method = request.method
     logger.warning(f"[RequestFailed] [{method} {fail}] << {url}")
+    if "geetest" in url:
+        raise CaptchaAbortError("出现验证码, 请求终止")

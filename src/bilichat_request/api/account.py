@@ -39,7 +39,7 @@ async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, An
             return Response(status_code=201, content=json.dumps(acc.dump(),ensure_ascii=False))
         raise ValueError(f"无法解析的 cookies 数据: {cookies}")
     except Exception as e:
-        logger.exception(e)
+        logger.error(e)
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 

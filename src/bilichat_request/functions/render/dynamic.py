@@ -110,6 +110,9 @@ async def screenshot(
             else:
                 raise AbortError(f"{dynid} 动态截图失败")
     except CaptchaAbortError:
+        if retry:
+            logger.error(f"动态 {dynid} 截图出现验证码, 重试...")
+            return await screenshot(dynid, retry=retry - 1)
         raise
     except TimeoutError as e:
         if retry:
@@ -124,6 +127,6 @@ async def screenshot(
         else:
             capture_exception()
             if retry:
-                logger.exception(f"动态 {dynid} 截图失败, 重试...")
+                logger.error(f"动态 {dynid} 截图失败, 重试...")
                 return await screenshot(dynid, mobile_style=mobile_style, quality=quality, retry=retry - 1)
             raise AbortError(f"{dynid} 动态截图失败") from e
