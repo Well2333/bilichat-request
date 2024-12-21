@@ -8,6 +8,7 @@ from pydantic import BaseModel
 from bilichat_request.account import get_web_account
 from bilichat_request.functions.render import column, dynamic
 from bilichat_request.functions.render.video import style_blue
+from bilichat_request.functions.tools import bv2av
 
 from .base import error_handler
 
@@ -63,20 +64,19 @@ async def get_dynamic(dynamic_id: str, quality: int = 75, *, mobile_style: bool 
 
 @router.get("/")
 @error_handler
-async def get_content(bililink: str, quality: int = 75) -> Content:
+async def get_content(bililink: str) -> Content:
     if matched := re.search(r"(?i)av(\d{1,15})|bv(1[0-9a-z]{9})", bililink):
-        _id = matched.group()
-        content = await Content.video(_id, quality=quality)
+        _id = str(matched.group()).removeprefix("av").removeprefix("AV")
+        _id = int(_id) if _id.isdigit() else bv2av(_id)
+        return Content(type="video", id=f"av{_id}", b23="", img="")
 
     elif matched := re.search(r"cv(\d{1,16})", bililink):
         _id = matched.group()
-        content = await Content.column(_id, quality=quality)
+        return Content(type="column", id=_id, b23="", img="")
 
     elif matched := re.search(r"(dynamic|opus|t.bilibili.com)/(\d{1,128})", bililink):
-        _id = matched.group()
-        content = await Content.dynamic(_id, quality=quality)
+        _id = matched.group()[-1]
+        return Content(type="dynamic", id=_id, b23="", img="")
 
     else:
         raise ValueError("无法识别的链接")
-
-    return content

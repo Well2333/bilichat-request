@@ -19,6 +19,8 @@ async def screenshot(
     quality: int = 75,
 ) -> tuple[bytes, VideoImage]:
     video_info = await VideoImage.get(video_id)
+    if quality == 0:
+        return b"", video_info
     video_time = (
         f"{video_info.hours:02d}:{video_info.minutes:02d}:{video_info.seconds:02d}"
         if video_info.hours
