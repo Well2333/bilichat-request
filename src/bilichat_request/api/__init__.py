@@ -8,12 +8,12 @@ from bilichat_request.config import config, tz
 
 from .account import router as account_router
 from .base import app
-from .render import router as render_router
+from .content import router as content_router
 from .subs import router as subs_router
 
 security = HTTPBearer()
 router = APIRouter()
-router.include_router(render_router, prefix="/render")
+router.include_router(content_router, prefix="/content")
 router.include_router(account_router, prefix="/account")
 router.include_router(subs_router, prefix="/subs")
 

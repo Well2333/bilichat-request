@@ -17,7 +17,7 @@ style_bule = static_dir.joinpath("style_blue")
 async def screenshot(
     video_id: int | str,
     quality: int = 75,
-):
+) -> tuple[bytes, VideoImage]:
     video_info = await VideoImage.get(video_id)
     video_time = (
         f"{video_info.hours:02d}:{video_info.minutes:02d}:{video_info.seconds:02d}"
@@ -77,4 +77,4 @@ async def screenshot(
         await page.set_content(html, wait_until="networkidle")
         await page.wait_for_timeout(5)
         img_raw = await page.locator(".video").screenshot(type="jpeg", quality=quality)
-    return img_raw
+    return img_raw, video_info
