@@ -35,10 +35,10 @@ def dyn_error_handler(func: Callable):
 
 
 @dyn_error_handler
-async def get_dynamic_by_uid(up_uid: int) -> list[Dynamic]:
+async def get_dynamic_by_uid(up_uid: int, offset: int = 0) -> list[Dynamic]:
     ids: list[Dynamic] = []
     async with get_web_account() as account:
-        resp = await account.web_requester.get_user_dynamics(up_uid)
+        resp = await account.web_requester.get_user_dynamics(up_uid, offset=offset)
         items = resp.get("items", [])
         if items:
             ids.extend(

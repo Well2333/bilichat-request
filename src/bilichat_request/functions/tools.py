@@ -2,8 +2,40 @@ import contextlib
 import re
 
 from httpx import AsyncClient
+from nonebot.log import logger
+from pydantic import BaseModel, Field
 
+from bilichat_request.account import get_web_account
 from bilichat_request.config import config
+
+
+class SearchUp(BaseModel):
+    nickname: str = Field(alias="title")
+    uid: int = Field(alias="mid")
+
+    def __str__(self) -> str:
+        return f"{self.nickname}({self.uid})"
+
+
+class SearchResult(BaseModel):
+    items: list[SearchUp] = []
+
+
+async def search_up(text_u: str, ps: int = 5) -> SearchUp | list[SearchUp]:
+    text_u = text_u.strip(""""'“”‘’""").strip().replace("：", ":")
+    async with get_web_account() as account:
+        resp = await account.web_requester.search_user(text_u, ps)
+        result = SearchResult(**resp)
+    if result.items:
+        for up in result.items:
+            if up.nickname == text_u or str(up.uid) in text_u:
+                logger.debug(up)
+                return up
+    # 没有找到对应的 up 但是输入的是 uid
+    if text_u.isdigit():
+        return await search_up("UID: " + text_u, ps)
+    # 没有找到对应的 up
+    return result.items
 
 
 async def b23_extract(raw_b23: str) -> str:

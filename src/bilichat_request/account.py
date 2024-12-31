@@ -42,11 +42,11 @@ class WebAccount:
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self.save()
 
-    def dump(self) -> dict[str, Any]:
+    def dump(self, *, exclude_cookies: bool = False) -> dict[str, Any]:
         return {
             "uid": self.uid,
             "note": self.note,
-            "cookies": self.cookies,
+            "cookies": self.cookies if not exclude_cookies else {},
         }
 
     def save(self) -> None:

@@ -24,5 +24,5 @@ async def get_lives(uids: list[int]) -> list[LiveRoom]:
 
 @router.get("/dynamic")
 @error_handler
-async def get_dynamic(uid: int) -> list[Dynamic]:
-    return await get_dynamic_by_uid(uid)
+async def get_dynamic(uid: int, offset: int = 0) -> list[Dynamic]:
+    return await get_dynamic_by_uid(uid, offset=offset)

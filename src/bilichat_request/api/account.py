@@ -31,12 +31,12 @@ async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, An
             )
             acc.save()
             _web_accounts[uid] = acc
-            return Response(status_code=201, content=json.dumps(acc.dump(),ensure_ascii=False))
+            return Response(status_code=201, content=json.dumps(acc.dump(), ensure_ascii=False))
         elif isinstance(cookies, dict):
             acc = WebAccount(uid=uid, cookies=cookies, note=note)
             acc.save()
             _web_accounts[uid] = acc
-            return Response(status_code=201, content=json.dumps(acc.dump(),ensure_ascii=False))
+            return Response(status_code=201, content=json.dumps(acc.dump(), ensure_ascii=False))
         raise ValueError(f"无法解析的 cookies 数据: {cookies}")
     except Exception as e:
         logger.error(e)
@@ -49,4 +49,4 @@ async def delete_web_account(uid: int):
     if uid not in _web_accounts:
         raise HTTPException(status_code=404, detail=f"Web 账号 <{uid}> 不存在")
     acc = _web_accounts.pop(uid)
-    return Response(status_code=200, content=json.dumps(acc.dump(),ensure_ascii=False))
+    return Response(status_code=200, content=json.dumps(acc.dump(exclude_cookies=True), ensure_ascii=False))

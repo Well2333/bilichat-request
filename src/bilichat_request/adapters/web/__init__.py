@@ -52,13 +52,15 @@ class WebRequester:
         retry: int = config.retry,
         *args,
         raw: bool = False,
+        wbi: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
         if params is None:
             params = {}
         if not self._inited:
             await self._init()
-        await self._sign_params(params)
+        if wbi:
+            await self._sign_params(params)
 
         try:
             resp = await self.client.request(method, url, params=params, cookies=self.cookies, *args, **kwargs)  # noqa: B026
@@ -103,11 +105,12 @@ class WebRequester:
         retry: int = config.retry,
         *args,
         raw: bool = False,
+        wbi: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
         if params is None:
             params = {}
-        return await self.request("GET", url, params, retry, *args, raw=raw, **kwargs)
+        return await self.request("GET", url, params, retry, *args, raw=raw, wbi=wbi, **kwargs)
 
     async def post(
         self,
@@ -116,11 +119,12 @@ class WebRequester:
         retry: int = config.retry,
         *args,
         raw: bool = False,
+        wbi: bool = False,
         **kwargs,
     ) -> dict[str, Any]:
         if params is None:
             params = {}
-        return await self.request("POST", url, params, retry, *args, raw=raw, **kwargs)
+        return await self.request("POST", url, params, retry, *args, raw=raw, wbi=wbi, **kwargs)
 
     async def _init(self) -> None:
         resp = await self.client.request(
@@ -242,20 +246,22 @@ class WebRequester:
         }
         return await self.get(url=url, headers=headers)
 
-    async def search_user(self, keyword: str):
+    async def search_user(self, keyword: str, ps: int = 5):
         """
         搜索用户
         """
         url = "https://app.bilibili.com/x/v2/search/type"
-        data = {"build": "6840300", "keyword": keyword, "type": "2", "ps": 5}
+        data = {"build": "6840300", "keyword": keyword, "type": "2", "ps": ps}
 
         return await self.get(url, params=data)
 
-    async def get_user_dynamics(self, uid: int):
+    async def get_user_dynamics(self, uid: int, offset: int = 0):
         """从 UP 主页获取动态信息
         https://github.com/SocialSisterYi/bilibili-API-collect/blob/master/docs/dynamic/space.md#获取用户空间动态"""
         url = "https://api.bilibili.com/x/polymer/web-dynamic/v1/feed/space"
         data = {"host_mid": uid}
+        if offset:
+            data["offset"] = offset
         headers = {
             **DEFAULT_HEADERS,
             "User-Agent": (
@@ -332,7 +338,7 @@ class WebRequester:
             params["aid"] = int(video_id)
         else:
             params["bvid"] = video_id
-        return await self.get(url, params=params)
+        return await self.get(url, params=params,wbi=True)
 
     async def get_user_card(self, uid: int):
         """https://github.com/SocialSisterYi/bilibili-API-collect/blob/e5fbfed42807605115c6a9b96447f6328ca263c5/docs/user/info.md#用户名片信息"""
