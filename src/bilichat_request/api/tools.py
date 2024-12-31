@@ -28,5 +28,5 @@ async def b23_generate(url: str) -> str:
 
 @router.get("/search_up")
 @error_handler
-async def search_up_api(text: str, ps: int = 5) -> SearchUp | list[SearchUp]:
-    return await search_up(text, ps)
+async def search_up_api(keyword: str, ps: int = 5) -> SearchUp | list[SearchUp]:
+    return await search_up(keyword, ps)
