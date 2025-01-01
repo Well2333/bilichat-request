@@ -63,6 +63,7 @@ class WebRequester:
             await self._sign_params(params)
 
         try:
+            logger.trace(f"请求: {method} {url} {params}")
             resp = await self.client.request(method, url, params=params, cookies=self.cookies, *args, **kwargs)  # noqa: B026
             self.update_callback(dict(resp.cookies))
             resp.encoding = "utf-8"
@@ -74,7 +75,7 @@ class WebRequester:
                     msg="请求失败",
                     data={"url": url, "params": params, "response": resp.text},
                 )
-
+            logger.trace(f"响应: {raw_json}")
             if raw:
                 return raw_json
             if raw_json["code"] == -403:
@@ -338,7 +339,7 @@ class WebRequester:
             params["aid"] = int(video_id)
         else:
             params["bvid"] = video_id
-        return await self.get(url, params=params,wbi=True)
+        return await self.get(url, params=params, wbi=True)
 
     async def get_user_card(self, uid: int):
         """https://github.com/SocialSisterYi/bilibili-API-collect/blob/e5fbfed42807605115c6a9b96447f6328ca263c5/docs/user/info.md#用户名片信息"""

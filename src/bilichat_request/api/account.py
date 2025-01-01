@@ -43,7 +43,7 @@ async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, An
         raise HTTPException(status_code=400, detail=str(e)) from e
 
 
-@router.post("/web_account/delete")
+@router.get("/web_account/delete")
 @error_handler
 async def delete_web_account(uid: int):
     if uid not in _web_accounts:

@@ -10,8 +10,8 @@ from bilichat_request.config import config
 
 
 class SearchUp(BaseModel):
-    nickname: str = Field(alias="title")
-    uid: int = Field(alias="mid")
+    nickname: str = Field(validation_alias="title")
+    uid: int = Field(validation_alias="mid")
 
     def __str__(self) -> str:
         return f"{self.nickname}({self.uid})"

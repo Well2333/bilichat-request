@@ -116,13 +116,13 @@ async def get_web_account(account_uid: int | None = None):
         if not web_account:
             raise ValueError(f"Web 账号 <{account_uid}> 不存在")
         while web_account.lock.locked():
-            if time.time() - st > 60:
+            if time.time() - st > 10:
                 raise asyncio.TimeoutError(f"获取 Web 账号 {web_account} 超时")
             await asyncio.sleep(0.2)
         await web_account.lock.acquire()
     elif _web_accounts:
         while True:
-            if time.time() - st > 60:
+            if time.time() - st > 10:
                 raise asyncio.TimeoutError("获取 Web 账号超时")
             try:
                 web_account = next(iter(_web_accounts.values()))

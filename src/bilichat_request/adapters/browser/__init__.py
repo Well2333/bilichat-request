@@ -12,8 +12,6 @@ from bilichat_request.exceptions import CaptchaAbortError
 from .browser_ctx import get_browser
 from .font import get_font_async
 
-mobile_style_js = static_dir.joinpath("browser", "mobile_style.js")
-
 font_mime_map = {
     "collection": "font/collection",
     "otf": "font/otf",

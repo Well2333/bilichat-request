@@ -5,7 +5,7 @@
 groups = ["default", "dev"]
 strategy = []
 lock_version = "4.5.0"
-content_hash = "sha256:190f2c3793f1e667544a6ab99225b42a391751d9f881fa14081d1862013bb07e"
+content_hash = "sha256:1c608c1bc27f7eabc56178ebdb00b49bbd45b69473e2607e7b2d445dfe0c6470"
 
 [[metadata.targets]]
 requires_python = "==3.10.*"
@@ -182,6 +182,18 @@ files = [
 ]
 
 [[package]]
+name = "deprecated"
+version = "1.2.15"
+summary = ""
+dependencies = [
+    "wrapt",
+]
+files = [
+    {file = "Deprecated-1.2.15-py2.py3-none-any.whl", hash = "sha256:353bc4a8ac4bfc96800ddab349d89c25dec1079f65fd53acdcc1e0b975b21320"},
+    {file = "deprecated-1.2.15.tar.gz", hash = "sha256:683e561a90de76239796e6b6feac66b99030d2dd3fcf61ef996330f14bbb9b0d"},
+]
+
+[[package]]
 name = "ecdsa"
 version = "0.19.0"
 summary = ""
@@ -324,6 +336,20 @@ files = [
 ]
 
 [[package]]
+name = "limits"
+version = "3.14.1"
+summary = ""
+dependencies = [
+    "deprecated",
+    "packaging",
+    "typing-extensions",
+]
+files = [
+    {file = "limits-3.14.1-py3-none-any.whl", hash = "sha256:051aca02da56e6932599a25cb8e70543959294f5d587d57bcd7e38df234e697b"},
+    {file = "limits-3.14.1.tar.gz", hash = "sha256:cad16a9b3cf3924e27da48e78bdab33ef312ecb7194fdb50e509cc8111c8d0bb"},
+]
+
+[[package]]
 name = "loguru"
 version = "0.7.3"
 summary = ""
@@ -442,6 +468,15 @@ dependencies = [
 files = [
     {file = "nonebot2-2.4.0-py3-none-any.whl", hash = "sha256:7c712e05561afa4795c9135a5b27a43d076220f4538ffec518e68c344e3e51d4"},
     {file = "nonebot2-2.4.0.tar.gz", hash = "sha256:4b10e33d389847500c9bde9ef3c5533b604a90ca1529750245f1aaf82b28f1e1"},
+]
+
+[[package]]
+name = "packaging"
+version = "24.2"
+summary = ""
+files = [
+    {file = "packaging-24.2-py3-none-any.whl", hash = "sha256:09abb1bccd265c01f4a3aa3f7a7db064b36514d2cba19a2f694fe6150451a759"},
+    {file = "packaging-24.2.tar.gz", hash = "sha256:c228a6dc5e932d346bc5739379109d49e8853dd8223571c7c5b55260edc0b97f"},
 ]
 
 [[package]]
@@ -782,6 +817,18 @@ files = [
 ]
 
 [[package]]
+name = "slowapi"
+version = "0.1.9"
+summary = ""
+dependencies = [
+    "limits",
+]
+files = [
+    {file = "slowapi-0.1.9-py3-none-any.whl", hash = "sha256:cfad116cfb84ad9d763ee155c1e5c5cbf00b0d47399a769b227865f5df576e36"},
+    {file = "slowapi-0.1.9.tar.gz", hash = "sha256:639192d0f1ca01b1c6d95bf6c71d794c3a9ee189855337b4821f7f457dddad77"},
+]
+
+[[package]]
 name = "sniffio"
 version = "1.3.1"
 summary = ""
@@ -937,6 +984,24 @@ summary = ""
 files = [
     {file = "win32_setctime-1.2.0-py3-none-any.whl", hash = "sha256:95d644c4e708aba81dc3704a116d8cbc974d70b3bdb8be1d150e36be6e9d1390"},
     {file = "win32_setctime-1.2.0.tar.gz", hash = "sha256:ae1fdf948f5640aae05c511ade119313fb6a30d7eabe25fef9764dca5873c4c0"},
+]
+
+[[package]]
+name = "wrapt"
+version = "1.17.0"
+summary = ""
+files = [
+    {file = "wrapt-1.17.0-cp310-cp310-macosx_11_0_arm64.whl", hash = "sha256:2a0c23b8319848426f305f9cb0c98a6e32ee68a36264f45948ccf8e7d2b941f8"},
+    {file = "wrapt-1.17.0-cp310-cp310-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:b1ca5f060e205f72bec57faae5bd817a1560fcfc4af03f414b08fa29106b7e2d"},
+    {file = "wrapt-1.17.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:e185ec6060e301a7e5f8461c86fb3640a7beb1a0f0208ffde7a65ec4074931df"},
+    {file = "wrapt-1.17.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:bb90765dd91aed05b53cd7a87bd7f5c188fcd95960914bae0d32c5e7f899719d"},
+    {file = "wrapt-1.17.0-cp310-cp310-musllinux_1_2_aarch64.whl", hash = "sha256:879591c2b5ab0a7184258274c42a126b74a2c3d5a329df16d69f9cee07bba6ea"},
+    {file = "wrapt-1.17.0-cp310-cp310-musllinux_1_2_i686.whl", hash = "sha256:fce6fee67c318fdfb7f285c29a82d84782ae2579c0e1b385b7f36c6e8074fffb"},
+    {file = "wrapt-1.17.0-cp310-cp310-musllinux_1_2_x86_64.whl", hash = "sha256:0698d3a86f68abc894d537887b9bbf84d29bcfbc759e23f4644be27acf6da301"},
+    {file = "wrapt-1.17.0-cp310-cp310-win32.whl", hash = "sha256:69d093792dc34a9c4c8a70e4973a3361c7a7578e9cd86961b2bbf38ca71e4e22"},
+    {file = "wrapt-1.17.0-cp310-cp310-win_amd64.whl", hash = "sha256:f28b29dc158ca5d6ac396c8e0a2ef45c4e97bb7e65522bfc04c989e6fe814575"},
+    {file = "wrapt-1.17.0-py3-none-any.whl", hash = "sha256:d2c63b93548eda58abf5188e505ffed0229bf675f7c3090f8e36ad55b8cbc371"},
+    {file = "wrapt-1.17.0.tar.gz", hash = "sha256:16187aa2317c731170a88ef35e8937ae0f533c402872c1ee5e6d079fcf320801"},
 ]
 
 [[package]]

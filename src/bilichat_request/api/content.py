@@ -6,6 +6,7 @@ from fastapi import APIRouter
 from pydantic import BaseModel
 
 from bilichat_request.account import get_web_account
+from bilichat_request.exceptions import NotFindAbortError
 from bilichat_request.functions.render import column, dynamic
 from bilichat_request.functions.render.video import style_blue
 from bilichat_request.functions.tools import bv2av
@@ -75,8 +76,7 @@ async def get_content(bililink: str) -> Content:
         return Content(type="column", id=_id, b23="", img="")
 
     elif matched := re.search(r"(dynamic|opus|t.bilibili.com)/(\d{1,128})", bililink):
-        _id = matched.group()[-1]
+        _id = matched.groups()[-1]
         return Content(type="dynamic", id=_id, b23="", img="")
-
     else:
-        raise ValueError("无法识别的链接")
+        raise NotFindAbortError(f"无法解析的链接 {bililink}")
