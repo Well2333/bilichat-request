@@ -22,7 +22,7 @@ class SearchResult(BaseModel):
 
 
 async def search_up(text_u: str, ps: int = 5) -> SearchUp | list[SearchUp]:
-    text_u = text_u.strip(""""'“”‘’""").strip().replace("：", ":")
+    text_u = text_u.strip(""""'“”‘’""").strip().replace("：", ":")  # noqa: RUF001
     async with get_web_account() as account:
         resp = await account.web_requester.search_user(text_u, ps)
         result = SearchResult(**resp)

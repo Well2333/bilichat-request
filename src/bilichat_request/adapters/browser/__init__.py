@@ -6,7 +6,6 @@ from playwright.async_api import Page, Request, Route
 from yarl import URL
 
 from bilichat_request.account import get_web_account
-from bilichat_request.config import static_dir
 from bilichat_request.exceptions import CaptchaAbortError
 
 from .browser_ctx import get_browser

@@ -16,18 +16,21 @@ else:
 
 
 class Config(BaseModel):
-    log_level: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "TRACE"
+    log_level: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "DEBUG"
     retry: int = 3
     data_path: str = "data"
     sentry_dsn: str = ""
     proxy: str = ""
     playwright_download_host: str = ""
+    bilichat_min_version: str = "6.0.0"
 
     # FastAPI config
     api_host: str = "127.0.0.1"
     api_port: int = 40432
     api_path: str = "bilichatapi"
     api_access_token: str = "123"
+    api_sub_dynamic_limit: str = "12/minute"
+    api_sub_live_limit: str = "30/minute"
 
 
 token = token_urlsafe(16)

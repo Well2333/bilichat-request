@@ -32,6 +32,7 @@ async def verify_token(cred: HTTPAuthorizationCredentials = Depends(security)): 
 async def pkg_version():
     return {
         "version": version("bilichat-request"),
+        "bilichat_min_version": config.bilichat_min_version,
         "package": "bilichat-request",
         "datetime": datetime.now(tz).isoformat(),
     }

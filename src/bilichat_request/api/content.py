@@ -1,3 +1,4 @@
+import asyncio
 import re
 from base64 import b64encode
 from typing import Literal
@@ -24,7 +25,7 @@ class Content(BaseModel):
 
     @classmethod
     async def video(cls, video_id: int | str, quality: int = 75) -> "Content":
-        img, info = await style_blue.screenshot(video_id, quality=quality)
+        img, info = await asyncio.wait_for(style_blue.screenshot(video_id, quality=quality), timeout=20)
         return cls(type="video", id=info.aid, b23=info.b23_url, img=b64encode(img).decode())
 
     @classmethod
@@ -34,14 +35,16 @@ class Content(BaseModel):
             cvid = cvid[2:]
         async with get_web_account() as account:
             b23 = await account.web_requester.get_b23_url(f"cv{cvid}")
-        img = await column.screenshot(cvid=str(cvid), quality=quality)
+        img = await asyncio.wait_for(column.screenshot(cvid=cvid, quality=quality), timeout=20)
         return cls(type="column", id=f"cv{cvid}", b23=b23, img=b64encode(img).decode())
 
     @classmethod
     async def dynamic(cls, dynamic_id: str, quality: int = 75, *, mobile_style: bool = True) -> "Content":
         async with get_web_account() as account:
             b23 = await account.web_requester.get_b23_url(f"https://t.bilibili.com/{dynamic_id}")
-        img = await dynamic.screenshot(dynamic_id, mobile_style=mobile_style, quality=quality)
+        img = await asyncio.wait_for(
+            dynamic.screenshot(dynamic_id, mobile_style=mobile_style, quality=quality), timeout=20
+        )
         return cls(type="dynamic", id=dynamic_id, b23=b23, img=b64encode(img).decode())
 
 
