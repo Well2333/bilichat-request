@@ -1,6 +1,6 @@
 [project]
 name = "bilichat-request"
-version = "0.1.1"
+version = "0.1.2"
 description = "Default template for PDM package"
 authors = [{ name = "Well404", email = "well_404@outlook.com" }]
 dependencies = [
@@ -26,6 +26,13 @@ requires-python = "==3.10.*"
 readme = "README.md"
 license = { text = "None" }
 
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[tool.pdm.build]
+includes = ["src/bilichat_request"]
+excludes = ["tests/"]
 
 [project.optional-dependencies]
 dev = ["nonebot-plugin-htmlrender>=0.4.0", "nonebot2[fastapi]>=2.4.0"]
