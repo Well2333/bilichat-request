@@ -6,7 +6,7 @@ import httpx
 from loguru import logger
 from yarl import URL
 
-from bilichat_request.config import data_path
+from bilichat_request.const import data_path
 
 DEFAULT_DYNAMIC_FONT = "HarmonyOS_Sans_SC_Medium.ttf"
 

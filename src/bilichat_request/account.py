@@ -12,7 +12,8 @@ from loguru import logger
 from typing_extensions import TypedDict
 
 from .adapters.web import WebRequester
-from .config import config, data_path, tz
+from .config import config, tz
+from .const import data_path
 from .exceptions import ResponseCodeError
 
 

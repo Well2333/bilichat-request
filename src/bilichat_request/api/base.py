@@ -8,7 +8,6 @@ from loguru import logger
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
-from bilichat_request.config import config, nonebot_env
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError, ResponseCodeError
 
 # 初始化 Limiter, 默认使用内存存储
@@ -50,14 +49,4 @@ def error_handler(func: Callable):
     return wrapper
 
 
-if nonebot_env:
-    import nonebot
-    from nonebot.drivers import ReverseDriver
-    from nonebot.drivers.fastapi import Driver as FastAPIDriver
 
-    driver: FastAPIDriver = nonebot.get_driver()  # type: ignore
-
-    if not isinstance(driver, ReverseDriver) or not isinstance(driver.server_app, FastAPI):
-        raise NotImplementedError("Only FastAPI reverse driver is supported.")
-
-    driver.server_app.mount(f"/{config.api_path}", app, name="bilichat_api")

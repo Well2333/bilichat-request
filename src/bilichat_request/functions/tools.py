@@ -2,7 +2,7 @@ import contextlib
 import re
 
 from httpx import AsyncClient
-from nonebot.log import logger
+from loguru import logger
 from pydantic import BaseModel, Field
 
 from bilichat_request.account import get_web_account
