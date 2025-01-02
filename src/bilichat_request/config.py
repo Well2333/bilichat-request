@@ -1,6 +1,5 @@
 import sys
 from pathlib import Path
-from secrets import token_urlsafe
 from typing import Literal
 
 from loguru import logger
@@ -20,7 +19,6 @@ class Config(BaseModel):
     retry: int = 3
     data_path: str = "data"
     sentry_dsn: str = ""
-    proxy: str = ""
     playwright_download_host: str = ""
     bilichat_min_version: str = "6.0.0"
 
@@ -28,17 +26,17 @@ class Config(BaseModel):
     api_host: str = "127.0.0.1"
     api_port: int = 40432
     api_path: str = "bilichatapi"
-    api_access_token: str = "123"
+    api_access_token: str = ""
     api_sub_dynamic_limit: str = "12/minute"
     api_sub_live_limit: str = "30/minute"
 
 
-token = token_urlsafe(16)
-logger.info(f"API 鉴权 Token: {token}")
+def set_config(config_: Config):
+    global config  # noqa: PLW0603
+    config = config_
+
 
 config = Config()
-data_path = Path(config.data_path)
-data_path.mkdir(parents=True, exist_ok=True)
 
 static_dir = Path(__file__).parent / "static"
 tz = timezone("Asia/Shanghai")

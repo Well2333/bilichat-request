@@ -3,7 +3,7 @@ from functools import wraps
 from json import JSONDecodeError
 
 from httpx import ConnectError, TransportError
-from nonebot.log import logger
+from loguru import logger
 from sentry_sdk import capture_exception
 
 from bilichat_request.account import get_web_account

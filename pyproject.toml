@@ -1,6 +1,6 @@
 [project]
 name = "bilichat-request"
-version = "0.1.0"
+version = "0.1.1"
 description = "Default template for PDM package"
 authors = [{ name = "Well404", email = "well_404@outlook.com" }]
 dependencies = [
@@ -28,10 +28,7 @@ license = { text = "None" }
 
 
 [project.optional-dependencies]
-dev = [
-    "nonebot-plugin-htmlrender>=0.4.0",
-    "nonebot2[fastapi]>=2.4.0",
-]
+dev = ["nonebot-plugin-htmlrender>=0.4.0", "nonebot2[fastapi]>=2.4.0"]
 [tool.pdm]
 distribution = true
 

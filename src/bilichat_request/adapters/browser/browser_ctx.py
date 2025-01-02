@@ -3,7 +3,7 @@ import sys
 from loguru import logger
 from playwright.async_api import Browser, Error, Playwright, async_playwright
 
-from bilichat_request.config import config, nonebot_env
+from bilichat_request.config import nonebot_env
 
 from .install_browser import install_browser
 
@@ -25,11 +25,6 @@ async def init(**kwargs) -> Browser:
 
 async def launch_browser(**kwargs) -> Browser:
     assert _playwright is not None, "Playwright 没有安装"
-
-    if config.proxy:
-        kwargs["proxy"] = {
-            "server": config.proxy,
-        }
     logger.info("使用 firefox 启动")
     return await _playwright.firefox.launch(headless=True, **kwargs)
 
