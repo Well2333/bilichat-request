@@ -20,7 +20,7 @@ class Config(BaseModel):
     data_path: str = "data"
     sentry_dsn: str = ""
     playwright_download_host: str = ""
-    bilichat_min_version: str = "6.0.0"
+    bilichat_min_version: str = "6.0.2"
 
     # FastAPI config
     api_host: str = "127.0.0.1"
