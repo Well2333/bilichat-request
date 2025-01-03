@@ -51,7 +51,7 @@ class WebAccount:
         }
 
     def save(self) -> None:
-        if self.uid <= 10:
+        if self.uid <= 100:
             return
         self.file_path.write_text(
             json.dumps(
@@ -170,14 +170,28 @@ async def get_web_account(account_uid: int | None = None):
             await web_account.lock.acquire()
 
         # 获取锁后进行账户状态检查
-        if web_account.uid > 10:
-            await web_account.check_alive()
+        if web_account.uid > 100:
+            alive = await web_account.check_alive()
+            if not alive:
+                logger.error(f"[{seqid}] Web 账号 <{web_account.uid}> 已失效, 释放锁并删除")
+                web_account.lock.release()
+                del _web_accounts[web_account.uid]
+                web_account = None
+                # 重新获取账号
+                async with get_web_account() as new_web_account:
+                    yield new_web_account
+                    return
 
-        yield web_account
+        if web_account:
+            yield web_account
     finally:
-        if web_account and web_account.lock.locked():
-            web_account.lock.release()
-            logger.debug(f"[{seqid}] 🔓🟢 <{web_account.uid}>")
+        if web_account:
+            if web_account.lock.locked():
+                web_account.lock.release()
+                logger.debug(f"[{seqid}] 🔓🟢 <{web_account.uid}>")
+            if web_account.uid <= 100:
+                del _web_accounts[web_account.uid]
+                logger.debug(f"[{seqid}] Web 账号 <{web_account.uid}> 已删除")
 
 
 _web_accounts: dict[int, WebAccount] = {}
