@@ -52,6 +52,17 @@ LOGURU_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level: <8}</l
 
 # add file logger
 logger.add(
+    LOGPATH.joinpath("trace/{time:YYYY-MM-DD}.log"),
+    format=LOGURU_FORMAT,
+    encoding="utf-8",
+    backtrace=True,
+    diagnose=True,
+    rotation="00:00",
+    colorize=False,
+    level="TRACE",
+)
+
+logger.add(
     LOGPATH.joinpath("{time:YYYY-MM-DD}.log"),
     format=LOGURU_FORMAT,
     encoding="utf-8",
@@ -59,7 +70,7 @@ logger.add(
     diagnose=True,
     rotation="00:00",
     colorize=False,
-    level="DEBUG",
+    level="INFO",
 )
 
 # add stdout logger
@@ -70,4 +81,17 @@ logger.add(
     diagnose=True,
     colorize=True,
     level=config.log_level,
+)
+
+# request logger
+logger.add(
+    LOGPATH.joinpath("req/{time:YYYY-MM-DD}.log"),
+    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level: <8}</level>|<level>{message}</level>",
+    filter=lambda record: record["extra"].get("handler") == "request",
+    encoding="utf-8",
+    backtrace=True,
+    diagnose=True,
+    rotation="00:00",
+    colorize=False,
+    level="TRACE",
 )
