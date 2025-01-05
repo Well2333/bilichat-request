@@ -39,7 +39,9 @@ def set_config(config_: Config):
 
 config = Config()
 if not nonebot_env:
-    config = Config.model_validate(yaml.safe_load(Path("config.yaml").read_bytes()))
+    cfg_path = Path("config.yaml")
+    if cfg_path.exists():
+        config = Config.model_validate(yaml.safe_load(cfg_path.read_bytes()))
     
 
 static_dir = Path(__file__).parent / "static"
