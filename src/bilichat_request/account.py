@@ -109,14 +109,14 @@ def load_all_web_accounts():
     logger.info(f"已加载 {len(_web_accounts)} 个 Web 账号")
 
 
-_seqid_generator = itertools.count(1)
+_seqid_generator = itertools.count(0)
 
 
 @contextlib.asynccontextmanager
 async def get_web_account(account_uid: int | None = None):
     # 获取唯一的 seqid
-    seqid = next(_seqid_generator)
-    logger.debug(f"[{seqid}] 开始获取 Web 账号。传入的 account_uid={account_uid}")
+    seqid = str(next(_seqid_generator) % 1000).zfill(3)
+    logger.debug(f"{seqid}-开始获取 Web 账号。传入的 account_uid={account_uid}")
 
     timeout = 10  # 超时时间为10秒
     loop = asyncio.get_running_loop()
@@ -126,20 +126,20 @@ async def get_web_account(account_uid: int | None = None):
 
     try:
         if account_uid is not None:
-            logger.debug(f"[{seqid}] 尝试获取指定 UID 的 Web 账号: {account_uid}")
+            logger.debug(f"{seqid}-尝试获取指定 UID 的 Web 账号: {account_uid}")
             web_account = _web_accounts.get(account_uid)
             if not web_account:
-                logger.error(f"[{seqid}] Web 账号 <{account_uid}> 不存在")
+                logger.error(f"{seqid}-Web 账号 <{account_uid}> 不存在")
                 raise ValueError(f"Web 账号 <{account_uid}> 不存在")
             try:
                 await asyncio.wait_for(web_account.lock.acquire(), timeout=timeout)
-                logger.debug(f"[{seqid}] 🔒🔴 <{web_account.uid}>")
+                logger.debug(f"{seqid}-🔒🔴 <{web_account.uid}>")
             except asyncio.TimeoutError:
-                logger.error(f"[{seqid}] 🔒⌛️ <{web_account.uid}>")
-                raise asyncio.TimeoutError(f"[{seqid}] 获取 Web 账号 <{web_account.uid}> 超时")  # noqa: B904
+                logger.error(f"{seqid}-🔒⌛️ <{web_account.uid}>")
+                raise asyncio.TimeoutError(f"{seqid}-获取 Web 账号 <{web_account.uid}> 超时")  # noqa: B904
 
         elif _web_accounts:
-            logger.debug(f"[{seqid}] 尝试获取任意可用的 Web 账号")
+            logger.debug(f"{seqid}-尝试获取任意可用的 Web 账号")
             elapsed = 0
             while elapsed < timeout:
                 for account in _web_accounts.values():
@@ -148,32 +148,32 @@ async def get_web_account(account_uid: int | None = None):
                             remaining_time = timeout - elapsed
                             await asyncio.wait_for(account.lock.acquire(), timeout=remaining_time)
                             web_account = account
-                            logger.debug(f"[{seqid}] 🔒🔴 <{web_account.uid}>")
+                            logger.debug(f"{seqid}-🔒🔴 <{web_account.uid}>")
                             break
                         except asyncio.TimeoutError:
-                            logger.debug(f"[{seqid}] 🔒⌛️ <{account.uid}>")
+                            logger.debug(f"{seqid}-🔒⌛️ <{account.uid}>")
                             continue
                 if web_account:
                     break
                 await asyncio.sleep(0.2)
                 elapsed = loop.time() - start_time
             if not web_account:
-                logger.error(f"[{seqid}] 🔒⌛️")
-                raise asyncio.TimeoutError(f"[{seqid}] 获取 Web 账号超时")
+                logger.error(f"{seqid}-🔒⌛️")
+                raise asyncio.TimeoutError(f"{seqid}-获取 Web 账号超时")
 
         else:
-            logger.debug(f"[{seqid}] 没有可用的 Web 账号, 正在创建临时 Web 账号, 可能会受到风控限制")
+            logger.debug(f"{seqid}-没有可用的 Web 账号, 正在创建临时 Web 账号, 可能会受到风控限制")
             new_uid = random.randint(1, 100)  # 根据实际需求调整UID范围
             web_account = WebAccount(new_uid, {})
             _web_accounts[new_uid] = web_account
-            logger.debug(f"[{seqid}] 🔒🔴 <{web_account.uid}>")
+            logger.debug(f"{seqid}-🔒🔴 <{web_account.uid}>")
             await web_account.lock.acquire()
 
         # 获取锁后进行账户状态检查
         if web_account.uid > 100:
             alive = await web_account.check_alive()
             if not alive:
-                logger.error(f"[{seqid}] Web 账号 <{web_account.uid}> 已失效, 释放锁并删除")
+                logger.error(f"{seqid}-Web 账号 <{web_account.uid}> 已失效, 释放锁并删除")
                 web_account.lock.release()
                 del _web_accounts[web_account.uid]
                 web_account = None
@@ -188,10 +188,10 @@ async def get_web_account(account_uid: int | None = None):
         if web_account:
             if web_account.lock.locked():
                 web_account.lock.release()
-                logger.debug(f"[{seqid}] 🔓🟢 <{web_account.uid}>")
+                logger.debug(f"{seqid}-🔓🟢 <{web_account.uid}>")
             if web_account.uid <= 100:
                 del _web_accounts[web_account.uid]
-                logger.debug(f"[{seqid}] Web 账号 <{web_account.uid}> 已删除")
+                logger.debug(f"{seqid}-Web 账号 <{web_account.uid}> 已删除")
 
 
 _web_accounts: dict[int, WebAccount] = {}

@@ -87,7 +87,6 @@ select = [
 
     # Code Quality and Refactoring
     'FURB', # refurb: 代码重构
-    'SIM',  # flake8-simplify: 简化代码
     'TRY',  # tryceratops: 异常处理
 
     # Formatting and Code Style
@@ -100,23 +99,12 @@ select = [
     # Framework-Specific Rules
     'AIR',  # Airflow: Airflow 相关规则
     'FAST', # FastAPI: FastAPI 相关
-    'DJ',   # flake8-django: Django 相关
     'NPY',  # NumPy-specific rules: NumPy 相关
     'PD',   # pandas-vet: Pandas 相关
-
-    # Type Annotations and Checking
-    'ANN', # flake8-annotations: 类型注解相关
-    'FA',  # flake8-future-annotations: 未来注解
-    'TC',  # flake8-type-checking: 类型检查
-    'PYI', # flake8-pyi: 类型注解文件
 
     # Logging
     'G',   # flake8-logging-format: 日志格式
     'LOG', # flake8-logging: 日志相关
-
-    # Import Conventions
-    'ICN', # flake8-import-conventions: 导入约定
-    'I',   # isort: 导入排序
 
     # Miscellaneous Tools
     'PL',  # Pylint (Convention): Pylint 约定
@@ -155,6 +143,8 @@ ignore = [
     "PLR2004", # 使用了魔法值
     "TRY003",  # raise 语句不应包含变量
     "TRY301",  # raise 语句应在 except 块内
+    "TRY400",  # 捕获所有异常
+    "TRY401",  # 捕获多个异常
 
     # Import Management
     "ISC001", # 隐式字符串连接
@@ -168,4 +158,7 @@ ignore = [
     "S311", # 标准伪随机生成器不适用于安全/加密目的
     "S324", # 使用不安全的 MD5 哈希函数
     "S501", # 请求禁用证书验证
+
+    # Logging
+    "G004", # 日志消息中包含变量
 ]

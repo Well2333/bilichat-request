@@ -2,6 +2,7 @@ import sys
 from pathlib import Path
 from typing import Literal
 
+import yaml
 from loguru import logger
 from pydantic import BaseModel
 from pytz import timezone
@@ -37,6 +38,9 @@ def set_config(config_: Config):
 
 
 config = Config()
+if not nonebot_env:
+    config = Config.model_validate(yaml.safe_load(Path("config.yaml").read_bytes()))
+    
 
 static_dir = Path(__file__).parent / "static"
 tz = timezone("Asia/Shanghai")

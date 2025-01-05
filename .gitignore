@@ -166,3 +166,4 @@ data/
 logs/
 .vscode/
 temp/
+config.yaml

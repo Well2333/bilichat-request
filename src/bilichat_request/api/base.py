@@ -1,4 +1,5 @@
 import asyncio
+import itertools
 from collections.abc import Callable
 from functools import wraps
 
@@ -23,30 +24,34 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+_seqid_generator = itertools.count(0)
+
 
 def error_handler(func: Callable):
     @wraps(func)
     async def wrapper(*args, **kwargs):  # noqa: ANN202
         try:
-            logger.trace(f"执行请求: {func.__name__} {args} {kwargs}")
-            return await func(*args, **kwargs)
+            seqid = f"{next(_seqid_generator)%1000000:6}"
+            logger.bind(handler="request").trace(
+                f"[{seqid}] ==> {func.__module__}.{func.__name__} {args if args else ''} {kwargs if kwargs else ''}"
+            )
+            result = await func(*args, **kwargs)
+            logger.bind(handler="request").trace(f"[{seqid}] <== {result}")
         except asyncio.TimeoutError as e:
-            logger.info(e)
+            logger.bind(handler="request").info(e)
             raise HTTPException(status_code=429, detail={"type": str(type(e)), "detail": str(e)}) from e
         except NotFindAbortError as e:
-            logger.info(e)
+            logger.bind(handler="request").info(e)
             raise HTTPException(status_code=404, detail={"type": str(type(e)), "detail": str(e)}) from e
         except HTTPException as e:
-            logger.info(f"{type(e)} {e.status_code} {e.detail}")
+            logger.bind(handler="request").info(f"{type(e)} {e.status_code} {e.detail}")
             raise
         except (AbortError, ResponseCodeError, CaptchaAbortError) as e:
-            logger.error(e)
+            logger.bind(handler="request").error(e)
             raise HTTPException(status_code=511, detail={"type": str(type(e)), "detail": str(e)}) from e
         except Exception as e:
-            logger.exception(e)
+            logger.bind(handler="request").exception(e)
             raise HTTPException(status_code=500, detail={"type": str(type(e)), "detail": str(e)}) from e
+        return result
 
     return wrapper
-
-
-
