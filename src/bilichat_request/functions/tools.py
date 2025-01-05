@@ -94,6 +94,7 @@ def bv2av(bvid: str) -> int:
         tmp = tmp * BASE + idx
     return (tmp & MASK_CODE) ^ XOR_CODE
 
+
 def shorten_long_items(
     obj: Any,  # noqa:
     max_length: int = 100,
@@ -115,6 +116,10 @@ def shorten_long_items(
     :param list_suffix: 缩短后保留的列表后缀长度
     :return: 处理后的 JSON 对象
     """
+    if not obj:
+        return obj
+    if isinstance(obj, BaseModel):
+        obj = obj.model_dump()
 
     if isinstance(obj, dict):
         return {k: shorten_long_items(v) for k, v in obj.items()}

@@ -28,8 +28,8 @@ class Config(BaseModel):
     api_port: int = 40432
     api_path: str = "bilichatapi"
     api_access_token: str = ""
-    api_sub_dynamic_limit: str = "12/minute"
-    api_sub_live_limit: str = "30/minute"
+    api_sub_dynamic_limit: str = "720/hour"
+    api_sub_live_limit: str = "1800/hour"
 
 
 def set_config(config_: Config):
