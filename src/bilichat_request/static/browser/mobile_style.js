@@ -1,7 +1,7 @@
 /*
  * @Author: KBD
  * @Date: 2022-12-26 13:45:30
- * @LastEditors: KBD
+ * @LastEditors: djkcyl
  * @LastEditTime: 2023-06-28 10:55:31
  * @Description: 用于初始化手机动态页面的样式以及图片大小
  */
@@ -13,7 +13,7 @@ async function getMobileStyle(useImageBig = true) {
         // 分享 dom
         shareDoms: [".dyn-share"],
         // 打开程序 dom
-        openAppBtnDoms: [".dynamic-float-btn", ".float-openapp"],
+        openAppBtnDoms: [".dynamic-float-btn", ".float-openapp", ".opus-float-btn"],
         // 导航 dom
         navDoms: [".m-navbar", ".opus-nav"],
         // 获取更多 dom

@@ -44,6 +44,7 @@ async def get_mobile_screenshot(page: Page, dynid: str):
     await page.add_script_tag(path=mobile_style_js)
 
     await page.wait_for_function("getMobileStyle('false')")
+    await page.wait_for_function("setFont()")
 
     await page.wait_for_load_state("networkidle")
     await page.wait_for_load_state("domcontentloaded")
