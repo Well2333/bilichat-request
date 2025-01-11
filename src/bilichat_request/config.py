@@ -15,6 +15,12 @@ else:
     logger.info("未检测到 nonebot2 运行, 启用独立模式")
 
 
+class CookieCloudConfig(BaseModel):
+    url: str
+    uuid: str
+    password: str
+
+
 class Config(BaseModel):
     log_level: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "DEBUG"
     retry: int = 3
@@ -31,6 +37,9 @@ class Config(BaseModel):
     api_sub_dynamic_limit: str = "720/hour"
     api_sub_live_limit: str = "1800/hour"
 
+    # cookie cloud config
+    cookie_clouds: list[CookieCloudConfig] = []
+
 
 def set_config(config_: Config):
     global config  # noqa: PLW0603
@@ -42,7 +51,7 @@ if not nonebot_env:
     cfg_path = Path("config.yaml")
     if cfg_path.exists():
         config = Config.model_validate(yaml.safe_load(cfg_path.read_bytes()))
-    
+
 
 static_dir = Path(__file__).parent / "static"
 tz = timezone("Asia/Shanghai")
