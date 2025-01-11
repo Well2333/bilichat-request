@@ -1,6 +1,6 @@
 [project]
 name = "bilichat-request"
-version = "0.1.7"
+version = "0.2.0"
 description = "Default template for PDM package"
 authors = [{ name = "Well404", email = "well_404@outlook.com" }]
 dependencies = [
@@ -21,6 +21,7 @@ dependencies = [
     "pydantic>=2.10.3",
     "bcrypt>=4.2.1",
     "slowapi>=0.1.9",
+    "pycryptodomex>=3.21.0",
 ]
 requires-python = "==3.10.*"
 readme = "README.md"

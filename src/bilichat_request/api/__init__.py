@@ -20,7 +20,7 @@ router.include_router(subs_router, prefix="/subs")
 router.include_router(tools_router, prefix="/tools")
 
 
-async def verify_token(cred: HTTPAuthorizationCredentials = Depends(security)):  # noqa: B008
+async def verify_token(cred: HTTPAuthorizationCredentials = Depends(security)):
     if cred.credentials != config.api_access_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
