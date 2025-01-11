@@ -1,3 +1,5 @@
+import contextlib
+
 from uvicorn import Config, Server
 
 from bilichat_request.api.base import app
@@ -14,14 +16,15 @@ if config.sentry_dsn:
 
 
 def main():
-    Server(
-        Config(
-            app,
-            host=config.api_host,
-            port=config.api_port,
-            log_config=LOGGING_CONFIG,
-        )
-    ).run()
+    with contextlib.suppress(KeyboardInterrupt):
+        Server(
+            Config(
+                app,
+                host=config.api_host,
+                port=config.api_port,
+                log_config=LOGGING_CONFIG,
+            )
+        ).run()
 
 
 if __name__ == "__main__":
