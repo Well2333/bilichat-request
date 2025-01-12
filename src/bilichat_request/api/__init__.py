@@ -4,7 +4,7 @@ from importlib.metadata import version
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 
-from bilichat_request.config import config, tz
+from bilichat_request.config import BILICHAT_MIN_VERSION, config, tz
 
 from .account import router as account_router
 from .base import app
@@ -32,7 +32,7 @@ async def verify_token(cred: HTTPAuthorizationCredentials = Depends(security)):
 async def pkg_version():
     return {
         "version": version("bilichat-request"),
-        "bilichat_min_version": config.bilichat_min_version,
+        "bilichat_min_version": BILICHAT_MIN_VERSION,
         "package": "bilichat-request",
         "datetime": datetime.now(tz).isoformat(),
     }
