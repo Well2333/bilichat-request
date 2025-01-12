@@ -52,12 +52,24 @@ class WebAccount:
         self.file_path = data_path / "auth" / f"web_{self.uid}.json"
         self.file_path.parent.mkdir(parents=True, exist_ok=True)
         self.save()
+        cc_str = f"(CookieCloud: {self.cookie_cloud.uuid})" if self.cookie_cloud else ""
+        logger.success(f"Web 账号 {self.uid}{cc_str} 已加载, 来源: {self.note.get('source', '')}")
 
     def dump(self, *, exclude_cookies: bool = False) -> dict[str, Any]:
+        cookies = {}
+        if not exclude_cookies:
+            if self.cookie_cloud:
+                cookies = {
+                    "url": self.cookie_cloud.url,
+                    "uuid": self.cookie_cloud.uuid,
+                    "password": self.cookie_cloud.password,
+                }
+            else:
+                cookies = self.cookies
         return {
             "uid": self.uid,
             "note": self.note,
-            "cookies": self.cookies if not exclude_cookies else {},
+            "cookies": cookies,
         }
 
     def save(self) -> None:
@@ -80,19 +92,56 @@ class WebAccount:
         self.save()
         return True
 
+    def remove(self) -> None:
+        if self.uid <= 100:
+            return
+        self.file_path.unlink()
+        _web_accounts.pop(self.uid, None)
+
     @classmethod
-    def load_from_json(cls, json_path: str | Path) -> "WebAccount":
-        auth_json: list[dict[str, Any]] | dict[str, Any] = json.loads(Path(json_path).read_text(encoding="utf-8"))
+    def load_from_cookiecloud(cls, cloud: PyCookieCloud) -> "WebAccount":
+        cookies = cloud.get_cookie_sync()
+        return cls(
+            uid=str(cookies["DedeUserID"]),
+            cookies=cookies,
+            cookies_cloud=cloud,
+            note={"create_time": datetime.now(tz=tz).isoformat(timespec="seconds"), "source": cloud.url},
+        )
+
+    @classmethod
+    def load_from_json(cls, auth_json: str | bytes | dict | list) -> "WebAccount":
+        if isinstance(auth_json, (str, bytes)):
+            auth_json = json.loads(auth_json)
         if isinstance(auth_json, list):
-            cookies = {}
-            for auth_ in auth_json:
-                cookies[auth_["name"]] = auth_["value"]
+            # 浏览器原始格式的 cookies
+            cookies = {auth_["name"]: auth_["value"] for auth_ in auth_json}
             return cls(
                 uid=cookies["DedeUserID"],
                 cookies=cookies,
             )
         elif isinstance(auth_json, dict):
-            return cls(**auth_json)
+            if uid := auth_json.get("DedeUserID"):
+                # 直接传入的 kv 格式 cookies, 常见于 API 直接传入
+                return cls(
+                    uid=uid,
+                    cookies=auth_json,
+                )
+            elif auth_json.get("url"):
+                # 直接传入的 Cookie Cloud 的 cookies, 常见于 API 直接传入
+                cloud = PyCookieCloud(auth_json["url"], auth_json["uuid"], auth_json["password"])
+                return cls.load_from_cookiecloud(cloud)
+            elif cookies := auth_json.get("cookies"):
+                # 本地文件的 cookies
+                if isinstance(cookies, dict) and cookies.get("url"):
+                    # Cookie Cloud 的 cookies
+                    cloud = PyCookieCloud(cookies["url"], cookies["uuid"], cookies["password"])
+                    wacc = cls.load_from_cookiecloud(cloud)
+                    wacc.note = auth_json.get("note") or wacc.note
+                    return wacc
+                else:
+                    # 本地保存的 cookies
+                    return cls(**auth_json)
+        raise ValueError(f"无法解析的 cookies 数据: {auth_json}")
 
     async def check_alive(self, retry: int = config.retry) -> bool:
         try:
@@ -219,7 +268,7 @@ async def _validate_and_update_account(seqid: str, web_account: WebAccount) -> W
 
 async def _remove_account(seqid: str, web_account: WebAccount) -> None:
     web_account.lock.release()
-    del _web_accounts[web_account.uid]
+    web_account.remove()
     logger.debug(f"{seqid}-Web 账号 <{web_account.uid}> 已删除")
 
 
@@ -229,7 +278,8 @@ _web_accounts: dict[int, WebAccount] = {}
 def load_all_web_accounts():
     for file_path in data_path.joinpath("auth").glob("web_*.json"):
         logger.info(f"正在从 {file_path} 加载 Web 账号")
-        account = WebAccount.load_from_json(file_path)
+        auth_json: list[dict[str, Any]] | dict[str, Any] = json.loads(Path(file_path).read_text(encoding="utf-8"))
+        account = WebAccount.load_from_json(auth_json)
         _web_accounts[account.uid] = account
     for cloud_config in config.cookie_clouds:
         logger.info(f"正在从 Cookie Cloud {cloud_config.uuid} 加载 Web 账号")
@@ -239,7 +289,7 @@ def load_all_web_accounts():
             uid=cookies["DedeUserID"],  # type: ignore
             cookies=cookies,
             cookies_cloud=cloud,
-            note={"create_time": datetime.now(tz=tz).isoformat(timespec="seconds"), "source": cloud_config.uuid},
+            note={"create_time": datetime.now(tz=tz).isoformat(timespec="seconds"), "source": cloud_config.url},
         )
         _web_accounts[account.uid] = account
     logger.info(f"已加载 {len(_web_accounts)} 个 Web 账号")
