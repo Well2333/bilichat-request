@@ -4,7 +4,8 @@ from typing import Any
 from fastapi import APIRouter, HTTPException, Response
 from loguru import logger
 
-from bilichat_request.account import Note, WebAccount, _web_accounts
+from bilichat_request.account import Note, PyCookieCloud, WebAccount, _web_accounts
+from bilichat_request.model.config import CookieCloud
 
 from .base import error_handler
 
@@ -19,25 +20,21 @@ async def get_web_account():
 
 @router.post("/web_account/create")
 @error_handler
-async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, Any], note: Note | None = None):
+async def add_web_account(cookies: list[dict[str, Any]] | dict[str, Any] | CookieCloud, note: Note | None = None):
     try:
-        if isinstance(cookies, list):
-            cookies_ = {}
-            for auth_ in cookies:
-                cookies_[auth_["name"]] = auth_["value"]
-            acc = WebAccount(
-                uid=cookies_["DedeUserID"],
-                cookies=cookies_,
-            )
-            acc.save()
-            _web_accounts[uid] = acc
-            return Response(status_code=201, content=json.dumps(acc.dump(), ensure_ascii=False))
-        elif isinstance(cookies, dict):
-            acc = WebAccount(uid=uid, cookies=cookies, note=note)
-            acc.save()
-            _web_accounts[uid] = acc
-            return Response(status_code=201, content=json.dumps(acc.dump(), ensure_ascii=False))
-        raise ValueError(f"无法解析的 cookies 数据: {cookies}")
+        cookie_cloud = None
+        if isinstance(cookies, CookieCloud):
+            cookie_cloud = PyCookieCloud(cookies.url, cookies.uuid, cookies.password)
+            cookies = await cookie_cloud.get_cookie()
+
+        acc = WebAccount.load_from_json(cookies)
+        if note:
+            acc.note = note
+        if cookie_cloud:
+            acc.cookie_cloud = cookie_cloud
+        acc.save()
+        _web_accounts[acc.uid] = acc
+        return Response(status_code=201, content=json.dumps(acc.dump(exclude_cookies=True), ensure_ascii=False))
     except Exception as e:
         logger.error(e)
         raise HTTPException(status_code=400, detail=str(e)) from e
@@ -45,8 +42,9 @@ async def add_web_account(uid: int, cookies: list[dict[str, Any]] | dict[str, An
 
 @router.get("/web_account/delete")
 @error_handler
-async def delete_web_account(uid: int):
-    if uid not in _web_accounts:
-        raise HTTPException(status_code=404, detail=f"Web 账号 <{uid}> 不存在")
-    acc = _web_accounts.pop(uid)
-    return Response(status_code=200, content=json.dumps(acc.dump(exclude_cookies=True), ensure_ascii=False))
+async def delete_web_account(uid: int | str):
+    for acc in _web_accounts.values():
+        if str(acc.uid) == str(uid) or (acc.cookie_cloud and acc.cookie_cloud.uuid == str(uid)):
+            acc.remove()
+            return Response(status_code=200, content=json.dumps(acc.dump(exclude_cookies=True), ensure_ascii=False))
+    raise HTTPException(status_code=404, detail=f"Web 账号 <{uid}> 不存在")
