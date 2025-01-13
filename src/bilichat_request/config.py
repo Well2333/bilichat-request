@@ -8,9 +8,9 @@ from pytz import timezone
 
 from .model.config import Config
 
-nonebot_env = "nonebot2" in sys.modules
+nonebot_env = bool({x for x in sys.modules if "nonebot" in x})
 
-BILICHAT_MIN_VERSION = "6.0.5"
+BILICHAT_MIN_VERSION = "6.0.7"
 
 if nonebot_env:
     logger.info("检测到 nonebot2 运行, 启用兼容运行模型")
