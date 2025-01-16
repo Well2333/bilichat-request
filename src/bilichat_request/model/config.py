@@ -41,3 +41,9 @@ class Config(BaseModel):
     # cookie cloud config
     cookie_clouds: list[CookieCloud] = []
     """CookieCloud 配置, 用于自动获取 cookie"""
+
+    # bilibili config
+    pc_user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0"
+    """PC 端 User-Agent"""
+    mobile_user_agent: str = "Mozilla/5.0 (Android 15; Mobile; rv:135.0) Gecko/135.0 Firefox/135.0"
+    """移动端 User-Agent"""

@@ -151,10 +151,7 @@ class VideoImage:
         async with AsyncClient() as client:
             client.headers.update(
                 {
-                    "User-Agent": (
-                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
-                        "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/80.0.3987.149 Safari/537.36"
-                    ),
+                    "User-Agent": config.pc_user_agent,
                     "origin": "https://www.bilibili.com",
                     "referer": f"https://www.bilibili.com/video/{data['bvid']}",
                 }

@@ -6,6 +6,7 @@ from playwright.async_api import Page, Request, Route
 from yarl import URL
 
 from bilichat_request.account import get_web_account
+from bilichat_request.config import config
 from bilichat_request.exceptions import CaptchaAbortError
 
 from .browser_ctx import get_browser
@@ -40,10 +41,7 @@ async def pw_font_injecter(route: Route, request: Request):
 async def get_new_page(device_scale_factor: float = 2, *, mobile_style: bool = False, **kwargs) -> AsyncIterator[Page]:
     browser = await get_browser()
     if mobile_style:
-        kwargs["user_agent"] = (
-            "5.0 (Linux; Android 13; SM-A037U) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/112.0.0.0 Mobile Safari/537.36  uacq"
-        )
+        kwargs["user_agent"] = config.mobile_user_agent
     logger.trace("创建新页面")
     page = await browser.new_page(device_scale_factor=device_scale_factor, **kwargs)
     async with get_web_account() as account:

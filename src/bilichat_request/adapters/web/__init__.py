@@ -14,10 +14,7 @@ from bilichat_request.config import config
 from bilichat_request.exceptions import ResponseCodeError
 
 DEFAULT_HEADERS = {
-    "User-Agent": (
-        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/114.0.0.0 "
-        "Safari/537.36 Edg/114.0.1823.67"
-    ),
+    "User-Agent": config.pc_user_agent,
     "Referer": "https://www.bilibili.com/",
 }
 APPKEY = "4409e2ce8ffd12b8"
@@ -240,10 +237,7 @@ class WebRequester:
         url = f"https://api.bilibili.com/x/polymer/web-dynamic/v1/detail?timezone_offset=-480&id={dyn_id}"
         headers = {
             "Referer": f"https://t.bilibili.com/{dyn_id}",
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 uacq"
-            ),
+            "User-Agent": config.pc_user_agent,
         }
         return await self.get(url=url, headers=headers)
 
@@ -265,10 +259,7 @@ class WebRequester:
             data["offset"] = offset
         headers = {
             **DEFAULT_HEADERS,
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-                "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 uacq"
-            ),
+            "User-Agent": config.pc_user_agent,
             "Origin": "https://space.bilibili.com",
             "Referer": f"https://space.bilibili.com/{uid}/dynamic",
         }

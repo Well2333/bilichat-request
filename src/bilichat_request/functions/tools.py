@@ -48,10 +48,7 @@ async def b23_extract(raw_b23: str) -> str:
     url = f"https://b23.tv/{b23}"
     async with AsyncClient(
         headers={
-            "User-Agent": (
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
-                "(KHTML, like Gecko) Chrome/112.0.0.0 Safari/537.36 Edg/112.0.1722.39"
-            )
+            "User-Agent": config.pc_user_agent,
         },
         follow_redirects=True,
     ) as client:
