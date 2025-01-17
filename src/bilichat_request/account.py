@@ -110,7 +110,7 @@ class WebAccount:
 
     @classmethod
     def load_from_json(cls, auth_json: str | bytes | dict | list) -> "WebAccount":
-        if isinstance(auth_json, (str, bytes)):
+        if isinstance(auth_json, str | bytes):
             auth_json = json.loads(auth_json)
         if isinstance(auth_json, list):
             # 浏览器原始格式的 cookies
@@ -168,7 +168,7 @@ async def get_web_account(account_uid: int | None = None):
     seqid = f"{next(_seqid_generator) % 1000:03}"
     logger.debug(f"{seqid}-开始获取 Web 账号。传入的 account_uid={account_uid}")
 
-    timeout = 10  # 超时时间为10秒
+    timeout = config.timeout
     loop = asyncio.get_running_loop()
     start_time = loop.time()
 

@@ -17,6 +17,8 @@ class Config(BaseModel):
     """日志等级, nonebot2 运行时此设置无效"""
     retry: int = 3
     """请求重试次数"""
+    timeout: int = 20
+    """请求超时时间"""
     data_path: str = "data"
     """数据存储路径, nonebot2 运行时此设置无效"""
     sentry_dsn: str = ""
