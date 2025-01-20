@@ -30,7 +30,7 @@ async def launch_browser(**kwargs) -> Browser:
 
 
 if NONEBOT_ENV and bool({x for x in sys.modules if "nonebot_plugin_htmlrender" in x}):
-    from nonebot_plugin_htmlrender import get_browser
+    from nonebot_plugin_htmlrender import get_browser  # type: ignore
 
 else:
 

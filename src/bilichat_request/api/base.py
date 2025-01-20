@@ -7,6 +7,7 @@ from functools import wraps
 from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
+from sentry_sdk import capture_exception
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
@@ -17,7 +18,7 @@ from bilichat_request.functions.tools import shorten_long_items
 
 # 浏览器健康检查
 if NONEBOT_ENV:
-    from nonebot import get_driver
+    from nonebot import get_driver  # type: ignore
 
     get_driver().on_startup(check_browser_health)
 
@@ -67,10 +68,12 @@ def error_handler(func: Callable):
         except (AbortError, ResponseCodeError, CaptchaAbortError) as e:
             logger.bind(handler="request").exception(e)
             logger.exception(e)
+            capture_exception(e)
             raise HTTPException(status_code=511, detail={"type": str(type(e)), "detail": str(e)}) from e
         except Exception as e:
             logger.bind(handler="request").exception(e)
             logger.exception(e)
+            capture_exception(e)
             raise HTTPException(status_code=500, detail={"type": str(type(e)), "detail": str(e)}) from e
         return result
 

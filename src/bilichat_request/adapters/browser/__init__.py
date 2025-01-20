@@ -1,9 +1,10 @@
+import urllib.parse
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from pathlib import Path
 
 from loguru import logger
 from playwright.async_api import Page, Request, Route
-from yarl import URL
 
 from bilichat_request.account import get_web_account
 from bilichat_request.config import config
@@ -23,17 +24,22 @@ font_mime_map = {
 
 
 async def pw_font_injecter(route: Route, request: Request):
-    url = URL(request.url)
-    if not url.is_absolute():
+    parsed = urllib.parse.urlparse(request.url)
+    if not parsed.scheme:
         raise ValueError("字体地址不合法")
+    query = urllib.parse.parse_qs(parsed.query)
+    name = query.get("name", [None])[0]
+    if not name:
+        raise ValueError("缺少字体名称")
     try:
-        logger.debug(f"请求字体文件 {url.query['name']}")
+        logger.debug(f"请求字体文件 {name}")
+        suffix = Path(parsed.path).suffix.lstrip(".")
         await route.fulfill(
-            path=await get_font_async(url.query["name"]),
-            content_type=font_mime_map.get(url.suffix),
+            path=await get_font_async(name),
+            content_type=font_mime_map.get(suffix),
         )
     except Exception:
-        logger.error(f"找不到字体 {url.query['name']}")
+        logger.error(f"找不到字体 {name}")
         await route.fallback()
 
 
