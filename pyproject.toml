@@ -1,6 +1,6 @@
 [project]
 name = "bilichat-request"
-version = "0.2.7"
+version = "0.2.8"
 description = "Default template for PDM package"
 authors = [{ name = "Well404", email = "well_404@outlook.com" }]
 dependencies = [
@@ -9,23 +9,26 @@ dependencies = [
     "jinja2>=3.1.4",
     "fastapi>=0.115.5",
     "loguru>=0.7.2",
-    "bilireq>=0.2.13",
-    "sentry-sdk>=2.19.0",
+    "sentry-sdk[fastapi]>=2.20.0",
     "pypng>=0.20220715.0",
-    "yarl>=1.18.0",
     "uvicorn>=0.32.1",
     "pytz>=2024.2",
     "python-jose[cryptography]>=3.3.0",
-    "passlib>=1.7.4",
     "python-multipart>=0.0.19",
     "pydantic>=2.10.3",
     "bcrypt>=4.2.1",
     "slowapi>=0.1.9",
     "pycryptodomex>=3.21.0",
+    "qrcode>=8.0",
+    "pyyaml>=6.0.2",
+    "apscheduler>=3.11.0",
 ]
 requires-python = ">=3.10,<4.0"
 readme = "README.md"
 license = { text = "None" }
+
+[project.scripts]
+bilirq = "bilichat_request.__main__:main"
 
 [build-system]
 requires = ["pdm-backend"]

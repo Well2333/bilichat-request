@@ -1,15 +1,33 @@
 import asyncio
 import re
 
+import httpx
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from playwright.async_api import Page, Response, TimeoutError  # noqa: A004
 from sentry_sdk import capture_exception
 
 from bilichat_request.adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
-from bilichat_request.config import config, static_dir
+from bilichat_request.config import config
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError
 
-mobile_style_js = static_dir.joinpath("browser", "mobile_style.js")
+mobile_style_js = httpx.get(
+    "https://unpkg.com/bilichat-script@latest/dist/mobile_style.min.js", follow_redirects=True
+).text
+
+scheduler = AsyncIOScheduler()
+
+
+@scheduler.scheduled_job("interval", minutes=20)
+async def update_mobile_style_js():
+    global mobile_style_js  # noqa: PLW0603
+    mobile_style_js = (
+        await httpx.AsyncClient().get(
+            "https://unpkg.com/bilichat-script@latest/dist/mobile_style.min.js",
+            timeout=10,
+            follow_redirects=True,
+        )
+    ).text
 
 
 async def get_mobile_screenshot(page: Page, dynid: str):
@@ -41,7 +59,7 @@ async def get_mobile_screenshot(page: Page, dynid: str):
     await page.wait_for_load_state(state="domcontentloaded")
     await page.wait_for_selector(".b-img__inner, .dyn-header__author__face", state="visible")
 
-    await page.add_script_tag(path=mobile_style_js)
+    await page.add_script_tag(content=mobile_style_js)
 
     await page.wait_for_function("getMobileStyle()")
 
