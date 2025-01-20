@@ -8,11 +8,11 @@ from pytz import timezone
 
 from .model.config import Config
 
-nonebot_env = bool({x for x in sys.modules if "nonebot" in x})
+NONEBOT_ENV = bool({x for x in sys.modules if "nonebot" in x})
 
 BILICHAT_MIN_VERSION = "6.0.7"
 
-if nonebot_env:
+if NONEBOT_ENV:
     logger.info("检测到 nonebot2 运行, 启用兼容运行模型")
 else:
     logger.info("未检测到 nonebot2 运行, 启用独立模式")
@@ -28,12 +28,12 @@ cfg_path = Path("config.yaml")
 
 
 def save_config():
-    if not nonebot_env:
+    if not NONEBOT_ENV:
         cfg_path.write_bytes(yaml.safe_dump(json.loads(config.model_dump_json()), allow_unicode=True).encode("utf-8"))
 
 
 def load_config():
-    if not nonebot_env and cfg_path.exists():
+    if not NONEBOT_ENV and cfg_path.exists():
         config = Config.model_validate(yaml.safe_load(cfg_path.read_bytes()))
         set_config(config)
 

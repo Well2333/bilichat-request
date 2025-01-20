@@ -1,6 +1,7 @@
 import asyncio
 import itertools
 from collections.abc import Callable
+from contextlib import asynccontextmanager
 from functools import wraps
 
 from fastapi import FastAPI, HTTPException
@@ -9,13 +10,29 @@ from loguru import logger
 from slowapi import Limiter
 from slowapi.util import get_remote_address
 
+from bilichat_request.adapters.browser import check_browser_health
+from bilichat_request.config import NONEBOT_ENV
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError, ResponseCodeError
 from bilichat_request.functions.tools import shorten_long_items
 
+# 浏览器健康检查
+if NONEBOT_ENV:
+    from nonebot import get_driver
+
+    get_driver().on_startup(check_browser_health)
+
+    app = FastAPI()
+else:
+
+    @asynccontextmanager
+    async def lifespan(_: FastAPI):
+        await check_browser_health()
+        yield
+
+    app = FastAPI(lifespan=lifespan)
+
 # 初始化 Limiter, 默认使用内存存储
 limiter = Limiter(key_func=get_remote_address)
-
-app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
@@ -48,10 +65,12 @@ def error_handler(func: Callable):
             logger.bind(handler="request").info(f"{type(e)} {e.status_code} {e.detail}")
             raise
         except (AbortError, ResponseCodeError, CaptchaAbortError) as e:
-            logger.bind(handler="request").error(e)
+            logger.bind(handler="request").exception(e)
+            logger.exception(e)
             raise HTTPException(status_code=511, detail={"type": str(type(e)), "detail": str(e)}) from e
         except Exception as e:
             logger.bind(handler="request").exception(e)
+            logger.exception(e)
             raise HTTPException(status_code=500, detail={"type": str(type(e)), "detail": str(e)}) from e
         return result
 
