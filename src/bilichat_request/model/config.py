@@ -25,6 +25,8 @@ class Config(BaseModel):
     """Sentry DSN"""
     playwright_download_host: str = ""
     """playwright 下载地址"""
+    playwright_headless: bool = True
+    """playwright 是否启用无头模式, 生产环境请勿关闭, 使用 nonebot_plugin_htmlrender 运行时此设置无效"""
 
     # FastAPI config
     api_host: str = "127.0.0.1"

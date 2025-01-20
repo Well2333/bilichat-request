@@ -93,3 +93,14 @@ def network_requestfailed(request: Request):
     logger.warning(f"[RequestFailed] [{method} {fail}] << {url}")
     if "geetest" in url:
         raise CaptchaAbortError("出现验证码, 请求终止")
+
+
+async def check_browser_health():
+    try:
+        logger.info("检查浏览器是否可以正常运行")
+        async with get_new_page() as page:
+            await page.goto("https://bilibili.com")
+            await page.wait_for_url("https://www.bilibili.com/", timeout=1000)
+        logger.success("浏览器运行正常")
+    except Exception as e:
+        raise RuntimeError("浏览器无法访问bilibili, 请检查安装环境或尝试联系开发者") from e

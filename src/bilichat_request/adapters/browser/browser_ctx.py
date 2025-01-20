@@ -3,7 +3,7 @@ import sys
 from loguru import logger
 from playwright.async_api import Browser, Error, Playwright, async_playwright
 
-from bilichat_request.config import nonebot_env
+from bilichat_request.config import NONEBOT_ENV, config
 
 from .install_browser import install_browser
 
@@ -26,25 +26,13 @@ async def init(**kwargs) -> Browser:
 async def launch_browser(**kwargs) -> Browser:
     assert _playwright is not None, "Playwright 没有安装"
     logger.info("使用 firefox 启动")
-    return await _playwright.firefox.launch(headless=True, **kwargs)
+    return await _playwright.firefox.launch(headless=config.playwright_headless, **kwargs)
 
 
-if nonebot_env and "nonebot_plugin_htmlrender" in sys.modules:
+if NONEBOT_ENV and bool({x for x in sys.modules if "nonebot_plugin_htmlrender" in x}):
     from nonebot_plugin_htmlrender import get_browser
 
 else:
 
     async def get_browser(**kwargs) -> Browser:
         return _browser if _browser and _browser.is_connected() else await init(**kwargs)
-
-
-# async def shutdown_browser():
-#    global _browser
-#    global _playwright
-#    if _browser:
-#        if _browser.is_connected():
-#            await _browser.close()
-#        _browser = None
-#    if _playwright:
-#        # await _playwright.stop()
-#        _playwright = None
