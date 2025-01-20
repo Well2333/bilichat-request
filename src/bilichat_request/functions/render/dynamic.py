@@ -11,9 +11,16 @@ from bilichat_request.adapters.browser import get_new_page, network_requestfaile
 from bilichat_request.config import config
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError
 
-mobile_style_js = httpx.get(
-    "https://unpkg.com/bilichat-script@latest/dist/mobile_style.min.js", follow_redirects=True
-).text
+try:
+    mobile_style_js = httpx.get(
+        "https://unpkg.com/bilichat-script@latest/dist/mobile_style.min.js", follow_redirects=True
+    ).text
+except httpx.HTTPError as e:
+    logger.error(f"获取 mobile_style.js 失败: {e}")
+    mobile_style_js = httpx.get(
+        "https://cdn.jsdelivr.net/npm/bilichat-script@latest/dist/mobile_style.min.js", follow_redirects=True
+    ).text
+
 
 scheduler = AsyncIOScheduler()
 
