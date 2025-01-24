@@ -13,15 +13,22 @@ from bilichat_request.exceptions import AbortError, ResponseCodeError
 
 from .model import CARD_TYPE_MAP, Dynamic, DynamicType
 
-if config.dynamic_cache_ttl:
-    dyn_cache = TTLCache(maxsize=99999, ttl=config.dynamic_cache_ttl)  # type: ignore
+dyn_cache = TTLCache(maxsize=99999, ttl=config.dynamic_cache_ttl or 1)  # type: ignore
 
-    def get_cached_dynamic(up_uid: int) -> list[Dynamic]:
-        return dyn_cache.get(up_uid, [])
-else:
 
-    def get_cached_dynamic(up_uid: int) -> list[Dynamic]:
-        return []
+def cache_dynamics(func: Callable) -> Callable:
+    @wraps(func)
+    async def wrapper(up_uid: int, *args, **kwargs) -> list[Dynamic]:
+        if not kwargs.get("offset", 0) and config.dynamic_cache_ttl and (cached := dyn_cache.get(up_uid)):
+            logger.debug(f"使用缓存: {up_uid}")
+            return cached
+
+        result = await func(up_uid, *args, **kwargs)
+        if config.dynamic_cache_ttl:
+            dyn_cache[up_uid] = result
+        return result
+
+    return wrapper
 
 
 def dyn_error_handler(func: Callable):
@@ -47,10 +54,8 @@ def dyn_error_handler(func: Callable):
 
 
 @dyn_error_handler
+@cache_dynamics
 async def get_dynamic_by_uid(up_uid: int, offset: int = 0) -> list[Dynamic]:
-    if not offset and (cached := get_cached_dynamic(up_uid)):
-        logger.debug(f"使用缓存: {up_uid}")
-        return cached
     dyns: list[Dynamic] = []
     async with get_web_account() as account:
         resp = await account.web_requester.get_user_dynamics(up_uid, offset=offset)
@@ -66,15 +71,12 @@ async def get_dynamic_by_uid(up_uid: int, offset: int = 0) -> list[Dynamic]:
                     for item in items
                 ]
             )
-    dyn_cache[up_uid] = dyns
     return dyns
 
 
 @dyn_error_handler
+@cache_dynamics
 async def get_dynamic_by_uid_old(up_uid: int) -> list[Dynamic]:
-    if cached := get_cached_dynamic(up_uid):
-        logger.debug(f"使用缓存: {up_uid}")
-        return cached
     dyns: list[Dynamic] = []
     async with get_web_account() as account:
         resp = await account.web_requester.get_user_dynamics_old(up_uid)
@@ -90,5 +92,4 @@ async def get_dynamic_by_uid_old(up_uid: int) -> list[Dynamic]:
                     for card in cards
                 ]
             )
-    dyn_cache[up_uid] = dyns
     return dyns

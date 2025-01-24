@@ -30,7 +30,7 @@ class Config(BaseModel):
     """请求重试次数"""
     timeout: int = 20
     """请求超时时间"""
-    dynamic_cache_ttl: int = 0
+    dynamic_cache_ttl: int = 120
     """动态获取(高风控接口)缓存时间, 0 为禁用缓存"""
     pc_user_agent: str = "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:135.0) Gecko/20100101 Firefox/135.0"
     """PC 端 User-Agent"""
