@@ -1,4 +1,5 @@
 import asyncio
+import contextlib
 import re
 
 import httpx
@@ -65,6 +66,11 @@ async def get_mobile_screenshot(page: Page, dynid: str):
 
     await page.wait_for_load_state(state="domcontentloaded")
     await page.wait_for_selector(".b-img__inner, .dyn-header__author__face", state="visible")
+
+    with contextlib.suppress(TimeoutError):
+        if await page.wait_for_selector(".dialog-close", timeout=5000):
+            logger.debug("检测到开启 APP 弹窗, 关闭弹窗")
+            await page.click(".dialog-close")
 
     await page.add_script_tag(content=mobile_style_js)
 
