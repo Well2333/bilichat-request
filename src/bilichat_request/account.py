@@ -166,7 +166,7 @@ _seqid_generator = itertools.count(0)
 @contextlib.asynccontextmanager
 async def get_web_account(account_uid: int | None = None):
     seqid = f"{next(_seqid_generator) % 1000:03}"
-    logger.debug(f"{seqid}-开始获取 Web 账号。传入的 account_uid={account_uid}")
+    logger.debug(f"{seqid}-开始获取 Web 账号。" + (f"指定 UID: {account_uid}" if account_uid else ""))
 
     timeout = config.timeout
     loop = asyncio.get_running_loop()
@@ -186,16 +186,19 @@ async def get_web_account(account_uid: int | None = None):
                 yield new_web_account
                 return
 
+        st = datetime.now(tz=tz)
+        logger.info(f"{seqid}-⬆️ 账号出库 <{web_account.uid}>")
         yield web_account
+        logger.info(f"{seqid}-⬇️ 账号回收 <{web_account.uid}> 总耗时: {(datetime.now(tz=tz) - st).total_seconds()}s")
 
     finally:
         if "web_account" in locals() and web_account:
             if web_account.lock.locked():
                 web_account.lock.release()
-                logger.debug(f"{seqid}-🔓🟢 <{web_account.uid}>")
+                logger.debug(f"{seqid}-🟢账号解锁 <{web_account.uid}>")
             if web_account.uid <= 100:
                 del _web_accounts[web_account.uid]
-                logger.debug(f"{seqid}-Web 账号 <{web_account.uid}> 已删除")
+                logger.debug(f"{seqid}-♻️临时账号清除 <{web_account.uid}>")
 
 
 async def _acquire_specific_account(seqid: str, account_uid: int, timeout: int) -> WebAccount:
@@ -207,9 +210,9 @@ async def _acquire_specific_account(seqid: str, account_uid: int, timeout: int) 
 
     try:
         await asyncio.wait_for(web_account.lock.acquire(), timeout=timeout)
-        logger.debug(f"{seqid}-🔒🔴 <{web_account.uid}>")
+        logger.debug(f"{seqid}-🔒账号锁定 <{web_account.uid}>")
     except asyncio.TimeoutError:
-        logger.error(f"{seqid}-🔒⌛️ <{web_account.uid}>")
+        logger.error(f"{seqid}-🔴获取超时 <{web_account.uid}>")
         raise asyncio.TimeoutError(f"{seqid}-获取 Web 账号 <{web_account.uid}> 超时")  # noqa: B904
     return web_account
 
@@ -222,7 +225,7 @@ async def _acquire_any_account(
         new_uid = random.randint(1, 100)  # 根据实际需求调整UID范围
         web_account = WebAccount(new_uid, {})
         _web_accounts[new_uid] = web_account
-        logger.debug(f"{seqid}-🔒🔴 <{web_account.uid}>")
+        logger.debug(f"{seqid}-🔒账号锁定 <{web_account.uid}>")
         await web_account.lock.acquire()
         return web_account
 
@@ -235,9 +238,9 @@ async def _acquire_any_account(
                 try:
                     acquire_timeout = remaining_timeout
                     await asyncio.wait_for(account.lock.acquire(), timeout=acquire_timeout)
-                    logger.debug(f"{seqid}-🔒🔴 <{account.uid}>")
+                    logger.debug(f"{seqid}-🔒账号锁定 <{account.uid}>")
                 except asyncio.TimeoutError:
-                    logger.debug(f"{seqid}-🔒⌛️ <{account.uid}>")
+                    logger.debug(f"{seqid}-🔴获取超时 <{account.uid}>")
                     continue
                 return account
 
@@ -245,8 +248,8 @@ async def _acquire_any_account(
         elapsed = loop.time() - start_time
         remaining_timeout = timeout - elapsed
 
-    logger.error(f"{seqid}-🔒⌛️ 没有可用的 Web 账号")
-    raise asyncio.TimeoutError(f"{seqid}-获取 Web 账号超时")
+    logger.error(f"{seqid}-🔴 没有可用的 Web 账号, 请考虑限制请求频率或添加更多账号")
+    raise asyncio.TimeoutError(f"{seqid}-获取 Web 账号超时, 请考虑限制请求频率或添加更多账号")
 
 
 async def _validate_and_update_account(seqid: str, web_account: WebAccount) -> WebAccount | None:

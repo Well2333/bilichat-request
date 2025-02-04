@@ -69,21 +69,28 @@ async def get_mobile_screenshot(page: Page, dynid: str):
 
     with contextlib.suppress(TimeoutError):
         if await page.wait_for_selector(".dialog-close", timeout=5000):
-            logger.debug("检测到开启 APP 弹窗, 关闭弹窗")
+            logger.debug("检测到开启 APP 弹窗, 尝试关闭弹窗")
             await page.click(".dialog-close")
+            logger.debug("关闭弹窗成功")
 
     await page.add_script_tag(content=mobile_style_js)
 
     await page.wait_for_function("getMobileStyle()")
 
+    logger.debug("js 执行完成, 等待页面加载...")
+
     await page.wait_for_load_state("networkidle")
     await page.wait_for_load_state("domcontentloaded")
+
+    logger.debug("等待字体加载...")
 
     await page.wait_for_timeout(200)
 
     # 判断字体是否加载完成
     need_wait = ["imageComplete", "fontsLoaded"]
     await asyncio.gather(*[page.wait_for_function(f"{i}()") for i in need_wait])
+
+    logger.debug("字体加载完成, 准备选取元素")
 
     card = await page.query_selector(".opus-modules" if "opus" in page.url else ".dyn-card")
     assert card
@@ -131,6 +138,9 @@ async def screenshot(
             else:
                 page, clip = await get_pc_screenshot(page, dynid)  # noqa: PLW2901
             clip["height"] = min(clip["height"], 32766)  # 限制高度
+
+            logger.debug("开始截图")
+
             if picture := await page.screenshot(
                 clip=clip,
                 full_page=True,
