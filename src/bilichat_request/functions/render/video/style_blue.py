@@ -65,7 +65,7 @@ async def screenshot(
         reply_count=video_info.reply,
         upload_date=video_info.pubdate.strftime("%Y-%m-%d"),
         av_number=video_info.aid,
-        video_summary=video_info.desc.replace("\n", "<br/>"),
+        video_summary=video_info.desc,
         like_count=video_info.like,
         coin_count=video_info.coin,
         fav_count=video_info.favorite,
