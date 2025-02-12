@@ -4,6 +4,7 @@ import itertools
 import json
 import random
 from asyncio import Lock
+from collections.abc import AsyncIterator
 from datetime import datetime
 from pathlib import Path
 from typing import Any
@@ -164,7 +165,7 @@ _seqid_generator = itertools.count(0)
 
 
 @contextlib.asynccontextmanager
-async def get_web_account(account_uid: int | None = None):
+async def get_web_account(account_uid: int | None = None) -> AsyncIterator[WebAccount]:
     seqid = f"{next(_seqid_generator) % 1000:03}"
     logger.debug(f"{seqid}-开始获取 Web 账号。" + (f"指定 UID: {account_uid}" if account_uid else ""))
 
@@ -233,7 +234,9 @@ async def _acquire_any_account(
     remaining_timeout = timeout
 
     while remaining_timeout > 0:
-        for account in _web_accounts.values():
+        accounts = list(_web_accounts.values())
+        random.shuffle(accounts)
+        for account in accounts:
             if not account.lock.locked():
                 try:
                     acquire_timeout = remaining_timeout
