@@ -33,7 +33,10 @@ else:
     app = FastAPI(lifespan=lifespan)
 
 # 初始化 Limiter, 默认使用内存存储
-limiter = Limiter(key_func=get_remote_address)
+limiter = Limiter(
+    key_func=get_remote_address,
+    config_filename="a_filename_does_not_exist_fuck_you_windows",
+)
 
 app.add_middleware(
     CORSMiddleware,
