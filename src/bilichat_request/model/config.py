@@ -1,4 +1,5 @@
 from typing import Literal
+from os import getenv
 
 from pydantic import BaseModel
 
@@ -38,7 +39,7 @@ class Config(BaseModel):
     """移动端 User-Agent"""
 
     # FastAPI 相关配置
-    api_host: str = "127.0.0.1"
+    api_host: str = getenv("API_HOST", "127.0.0.1")
     """API 监听地址, nonebot2 运行时此设置无效"""
     api_port: int = 40432
     """API 监听端口, nonebot2 运行时此设置无效"""
