@@ -1,4 +1,3 @@
-import os
 from datetime import datetime
 from importlib.metadata import version
 
@@ -39,11 +38,11 @@ async def pkg_version():
     }
 
 
-# 仅在Docker环境下启用健康检查接口
-if os.getenv("DOCKER", "").lower() in ("true", "1", "yes"):
+# 根据配置启用健康检查接口
+if config.api_enable_health_check:
     @app.get("/health")
     async def health_check():
-        """健康检查接口，仅在Docker环境下启用"""
+        """健康检查接口，用于容器健康检查"""
         return {"status": "ok"}
 
 

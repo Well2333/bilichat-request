@@ -1,5 +1,5 @@
-from typing import Literal
 from os import getenv
+from typing import Literal
 
 from pydantic import BaseModel
 
@@ -51,6 +51,8 @@ class Config(BaseModel):
     """API 订阅动态限制, 参数可参考 https://limits.readthedocs.io/en/stable/quickstart.html#rate-limit-string-notation"""
     api_sub_live_limit: str = "1800/hour"
     """API 订阅直播限制, 参数可参考 https://limits.readthedocs.io/en/stable/quickstart.html#rate-limit-string-notation"""
+    api_enable_health_check: bool = getenv("DOCKER", "").lower() in ("true", "1", "yes")
+    """是否启用健康检查接口, 主要用于Docker环境"""
 
     # cookie cloud 相关配置
     cookie_clouds: list[CookieCloud] = []
