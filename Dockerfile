@@ -27,8 +27,9 @@ RUN uv run playwright install firefox --with-deps \
 
 EXPOSE 40432
 ENV API_HOST=0.0.0.0
+ENV DOCKER=true
 
-HEALTHCHECK --interval=60s --timeout=2s --start-period=30s --retries=5 CMD curl -f http://localhost:40432/bilichatapi/version || exit 1
+HEALTHCHECK --interval=60s --timeout=2s --start-period=30s --retries=5 CMD curl -f http://localhost:40432/health || exit 1
 
 ENV TZ=Asia/Shanghai
 

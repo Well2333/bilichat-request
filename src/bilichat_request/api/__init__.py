@@ -1,3 +1,4 @@
+import os
 from datetime import datetime
 from importlib.metadata import version
 
@@ -36,6 +37,14 @@ async def pkg_version():
         "package": "bilichat-request",
         "datetime": datetime.now(tz).isoformat(),
     }
+
+
+# 仅在Docker环境下启用健康检查接口
+if os.getenv("DOCKER", "").lower() in ("true", "1", "yes"):
+    @app.get("/health")
+    async def health_check():
+        """健康检查接口，仅在Docker环境下启用"""
+        return {"status": "ok"}
 
 
 app.include_router(
