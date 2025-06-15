@@ -25,6 +25,16 @@ RUN uv run playwright install firefox --with-deps \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建非root用户
+RUN groupadd --gid 1000 appuser \
+    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+# 设置目录权限
+RUN chown -R appuser:appuser /app
+
+# 切换到非root用户
+USER appuser
+
 EXPOSE 40432
 ENV API_HOST=0.0.0.0
 ENV DOCKER=true
