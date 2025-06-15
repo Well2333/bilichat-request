@@ -25,10 +25,21 @@ RUN uv run playwright install firefox --with-deps \
     && apt clean \
     && rm -rf /var/lib/apt/lists/*
 
+# 创建非root用户
+RUN groupadd --gid 1000 appuser \
+    && useradd --uid 1000 --gid appuser --shell /bin/bash --create-home appuser
+
+# 设置目录权限
+RUN chown -R appuser:appuser /app
+
+# 切换到非root用户
+USER appuser
+
 EXPOSE 40432
 ENV API_HOST=0.0.0.0
+ENV DOCKER=true
 
-HEALTHCHECK --interval=60s --timeout=2s --start-period=30s --retries=5 CMD curl -f http://localhost:40432/bilichatapi/version || exit 1
+HEALTHCHECK --interval=60s --timeout=2s --start-period=30s --retries=5 CMD curl -f http://localhost:40432/health || exit 1
 
 ENV TZ=Asia/Shanghai
 
