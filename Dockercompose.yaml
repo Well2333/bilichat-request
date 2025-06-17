@@ -1,0 +1,17 @@
+services:
+  bilichat:
+    image: well404/bilichat-request:latest
+    container_name: bilichat_service
+    restart: unless-stopped
+    ports:
+      - "40432:40432" # 内部端口号请不要更改
+    volumes:
+      - /your/path/to/project/config.yaml:/app/config.yaml
+      - /your/path/to/project/data:/app/data
+      - /your/path/to/project/logs:/app/logs
+    environment:
+      - TZ=Asia/Shanghai
+
+networks:
+  default:
+    driver: bridge
