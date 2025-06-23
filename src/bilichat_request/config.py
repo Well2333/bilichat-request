@@ -10,7 +10,7 @@ from .model.config import Config
 
 NONEBOT_ENV = bool({x for x in sys.modules if "nonebot" in x})
 
-BILICHAT_MIN_VERSION = "6.0.7"
+BILICHAT_MIN_VERSION = "6.3.1"
 
 if NONEBOT_ENV:
     logger.info("检测到 nonebot2 运行, 启用兼容运行模型")
