@@ -54,6 +54,9 @@ class Config(BaseModel):
     api_enable_health_check: bool = getenv("DOCKER", "").lower() in ("true", "1", "yes")
     """是否启用健康检查接口, 主要用于Docker环境"""
 
-    # cookie cloud 相关配置
+    # 账号相关配置
+    account_recover_interval: int = 120
+    """可恢复的账号失效后重试获取的间隔时间(秒)"""
+    ## cookie cloud 相关配置
     cookie_clouds: list[CookieCloud] = []
     """CookieCloud 配置, 用于自动获取 cookie"""
