@@ -92,8 +92,8 @@ def bv2av(bvid: str) -> int:
     return (tmp & MASK_CODE) ^ XOR_CODE
 
 
-def shorten_long_items(
-    obj: Any,  # noqa:
+def shorten_long_items(  # noqa: PLR0911
+    obj: Any,
     max_length: int = 100,
     prefix_length: int = 10,
     suffix_length: int = 10,

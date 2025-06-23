@@ -42,7 +42,7 @@ async def pkg_version():
 if config.api_enable_health_check:
     @app.get("/health")
     async def health_check():
-        """健康检查接口，用于容器健康检查"""
+        """健康检查接口, 用于容器健康检查"""
         return {"status": "ok"}
 
 

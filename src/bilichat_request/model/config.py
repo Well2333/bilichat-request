@@ -57,3 +57,5 @@ class Config(BaseModel):
     # cookie cloud 相关配置
     cookie_clouds: list[CookieCloud] = []
     """CookieCloud 配置, 用于自动获取 cookie"""
+    cookie_cloud_retry_interval: int = 120
+    """CookieCloud 账号失效后重试获取的间隔时间(秒)"""
