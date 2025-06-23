@@ -7,8 +7,9 @@ from collections.abc import AsyncIterator
 from datetime import datetime
 from typing import Any
 
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
+
+from bilichat_request.compat import scheduler
 
 from ..config import config, tz
 from ..const import data_path
@@ -17,7 +18,6 @@ from .base import BaseWebAccount, RecoverableWebAccount, TemporaryWebAccount
 from .cookie_cloud import CCWebAccount
 from .normal import NormalWebAccount
 
-scheduler = AsyncIOScheduler()
 _seqid_generator = itertools.count(0)
 _background_tasks: set[asyncio.Task[Any]] = set()
 

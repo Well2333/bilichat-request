@@ -3,12 +3,12 @@ import contextlib
 import re
 
 import httpx
-from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from loguru import logger
 from playwright.async_api import Page, Response, TimeoutError  # noqa: A004
 from sentry_sdk import capture_exception
 
 from bilichat_request.adapters.browser import get_new_page, network_requestfailed, pw_font_injecter
+from bilichat_request.compat import scheduler
 from bilichat_request.config import config
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError
 
@@ -22,8 +22,6 @@ except httpx.HTTPError as e:
         "https://cdn.jsdelivr.net/npm/bilichat-script@latest/dist/mobile_style.min.js", follow_redirects=True
     ).text
 
-
-scheduler = AsyncIOScheduler()
 
 
 @scheduler.scheduled_job("interval", minutes=20)

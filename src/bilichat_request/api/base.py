@@ -12,6 +12,7 @@ from slowapi import Limiter
 from slowapi.util import get_remote_address
 
 from bilichat_request.adapters.browser import check_browser_health
+from bilichat_request.compat import scheduler
 from bilichat_request.config import NONEBOT_ENV
 from bilichat_request.exceptions import AbortError, CaptchaAbortError, NotFindAbortError, ResponseCodeError
 from bilichat_request.functions.tools import shorten_long_items
@@ -28,6 +29,8 @@ else:
     @asynccontextmanager
     async def lifespan(_: FastAPI):
         await check_browser_health()
+
+        scheduler.start()
         yield
 
     app = FastAPI(lifespan=lifespan)
