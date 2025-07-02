@@ -109,6 +109,39 @@ curl -X GET "http://localhost:40432/bilichatapi/content/dynamic?dynamic_id=12345
 
 ---
 
+## GET /content/dynamic_content
+
+获取动态的文字内容和图片链接
+
+### API 输入
+
+| 参数名 | 类型 | 必需 | 说明 |
+|--------|------|------|------|
+| dynamic_id | string | 是 | 动态ID |
+
+```bash
+curl -X GET "http://localhost:40432/bilichatapi/content/dynamic_content?dynamic_id=123456789" \
+  -H "Authorization: Bearer <your_token>"
+```
+
+### API 输出
+
+| 字段名 | 类型 | 说明 |
+|--------|------|------|
+| text | string | 动态的文字内容，无内容时为空字符串 |
+| images | array | 动态中的图片链接列表，无内容时为空数组 |
+
+```json
+{
+  "text": "《明日方舟》衍生迷你剧《U探泰拉》已全部更新完毕。\n主播U感谢大家助力！期待未来某一天，再相聚噢！",
+  "images": [
+    "https://i0.hdslb.com/bfs/new_dyn/71443f4216afbe06a96c99dfe1f1b7a8161775300.gif"
+  ]
+}
+```
+
+---
+
 ## GET /content/
 
 通用内容链接解析，仅解析内容类型和ID，不生成截图和短链接

@@ -9,6 +9,7 @@ from pydantic import BaseModel
 from bilichat_request.account import get_web_account
 from bilichat_request.config import config
 from bilichat_request.exceptions import NotFindAbortError
+from bilichat_request.functions import dynamic_content
 from bilichat_request.functions.render import column, dynamic
 from bilichat_request.functions.render.video import style_blue
 from bilichat_request.functions.tools import bv2av
@@ -49,6 +50,12 @@ class Content(BaseModel):
         return cls(type="dynamic", id=dynamic_id, b23=b23, img=b64encode(img).decode())
 
 
+class DynamicContentResponse(BaseModel):
+    """动态内容响应模型"""
+    text: str  # 文字内容，无内容时为 ""
+    images: list[str]  # 图片链接列表，无内容时为 []
+
+
 @router.get("/video")
 @error_handler
 async def get_video(video_id: int | str, quality: int = 75) -> Content:
@@ -65,6 +72,24 @@ async def get_column(cvid: int | str, quality: int = 75) -> Content:
 @error_handler
 async def get_dynamic(dynamic_id: str, quality: int = 75, *, mobile_style: bool = True) -> Content:
     return await Content.dynamic(dynamic_id, quality=quality, mobile_style=mobile_style)
+
+
+@router.get("/dynamic_content")
+@error_handler
+async def get_dynamic_content(dynamic_id: str) -> DynamicContentResponse:
+    """
+    获取动态的文字内容和图片链接
+    
+    Args:
+        dynamic_id: 动态ID
+        
+    Returns:
+        DynamicContentResponse: 包含文字内容和图片链接的对象
+            - text: str - 文字内容，无内容时为 ""
+            - images: list[str] - 图片链接列表，无内容时为 []
+    """
+    result = await dynamic_content.extract_dynamic_content(dynamic_id)
+    return DynamicContentResponse(text=result.text, images=result.images)
 
 
 @router.get("/")
