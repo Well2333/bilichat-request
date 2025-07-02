@@ -44,8 +44,8 @@ async def extract_dynamic_content(dynamic_id: str) -> DynamicContent:
             # 等待页面完全加载
             await page.wait_for_load_state("domcontentloaded")
 
-            # 等待内容加载完成
-            await page.wait_for_timeout(2000)
+            # 等待内容加载完成，直到动态内容区域出现
+            await page.wait_for_selector(".dyn-card-opus")
 
             # 查找动态内容区域
             dynamic_cards = await page.query_selector_all(".dyn-card-opus")
