@@ -15,7 +15,7 @@ router = APIRouter()
 @router.get("/web_account")
 @error_handler
 async def get_web_account():
-    return [{"uid": str(v.uid), "note": v.note} for v in account_manager.accounts.values()]
+    return [{"uid": str(v.uid), "type": v.type, "note": v.note} for v in account_manager.accounts.values()]
 
 
 @router.post("/web_account/create")
