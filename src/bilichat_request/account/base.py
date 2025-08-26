@@ -64,6 +64,7 @@ class BaseWebAccount(ABC):
             logger.debug(f"查询 Web 账号 <{self.uid}> 存活状态")
             await self.web_requester.check_new_dynamics(0)
             logger.debug(f"Web 账号 <{self.uid}> 确认存活")
+            self.available = True
         except ResponseCodeError as e:
             if e.code == -101:
                 logger.error(f"Web 账号 <{self.uid}> 已失效: {e}")
