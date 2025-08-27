@@ -62,7 +62,7 @@ class BaseWebAccount(ABC):
             logger.debug(f"Web 账号 <{self.uid}> 确认存活")
             self.available = True
         except ResponseCodeError as e:
-            if not e.code == -101:
+            if e.code != -101:
                 raise
             logger.error(f"Web 账号 <{self.uid}> 已失效: {e}")
             self.available = False
