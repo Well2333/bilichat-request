@@ -85,8 +85,8 @@ async def get_dynamic_content(dynamic_id: str) -> DynamicContentResponse:
         
     Returns:
         DynamicContentResponse: 包含文字内容和图片链接的对象
-            - text: str - 文字内容，无内容时为 ""
-            - images: list[str] - 图片链接列表，无内容时为 []
+            - text: str - 文字内容, 无内容时为 ""
+            - images: list[str] - 图片链接列表, 无内容时为 []
     """
     result = await dynamic_content.extract_dynamic_content(dynamic_id)
     return DynamicContentResponse(text=result.text, images=result.images)
