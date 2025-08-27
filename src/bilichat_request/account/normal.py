@@ -2,7 +2,7 @@ import json
 from pathlib import Path
 from typing import Any
 
-from loguru import logger
+from nonebot.log import logger
 
 from ..const import data_path
 from .base import BaseWebAccount, Note

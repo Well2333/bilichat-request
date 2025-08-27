@@ -4,23 +4,21 @@ import itertools
 import json
 import random
 from collections.abc import AsyncIterator
-from datetime import datetime
 from typing import Any
 
 from loguru import logger
 
 from bilichat_request.compat import scheduler
 
-from ..config import config, tz
+from ..config import config
 from ..const import data_path
+from ..exceptions import ResponseCodeError
 from ..functions.cookie_cloud import PyCookieCloud
 from .base import BaseWebAccount, RecoverableWebAccount, TemporaryWebAccount
 from .cookie_cloud import CCWebAccount
 from .normal import NormalWebAccount
 
 _seqid_generator = itertools.count(0)
-_background_tasks: set[asyncio.Task[Any]] = set()
-
 
 class WebAccountManager:
     """Web账号管理器"""
@@ -72,85 +70,53 @@ class WebAccountManager:
     def remove_account(self, uid: int) -> bool:
         """从管理器中移除账号"""
         if uid in self._accounts:
-            self._accounts[uid].remove()
-            if not isinstance(self._accounts[uid], RecoverableWebAccount):
+            account = self._accounts[uid]
+            if isinstance(account, RecoverableWebAccount):
+                account.available = False
+            elif isinstance(account, NormalWebAccount):
+                account.remove()
+                del self._accounts[uid]
+            elif isinstance(account, TemporaryWebAccount):
                 del self._accounts[uid]
             return True
         return False
 
-    async def acquire_account(self, seqid: str) -> BaseWebAccount:
-        logger.debug(f"{seqid}-尝试获取账号")
 
-        while True:
-            accounts = self.available_accounts
-            random.shuffle(accounts)
-
-            for account in accounts:
-                if not account.lock.locked():
-                    # 尝试锁定账号
-                    try:
-                        await asyncio.wait_for(account.lock.acquire(), timeout=0.1)
-                        logger.debug(f"{seqid}-🔒账号锁定 <{account.uid}>")
-                    except asyncio.TimeoutError:
-                        logger.debug(f"{seqid}-🔴获取超时 <{account.uid}>")
-                        continue
-                    # 检查是否可用
-                    if not await account.check_alive():
-                        if isinstance(account, RecoverableWebAccount):
-                            task = asyncio.create_task(account.recover())
-                            _background_tasks.add(task)
-                            task.add_done_callback(_background_tasks.discard)
-                        continue
-                    # 账号可用, 返回
-                    return account
-
-            await asyncio.sleep(0.2)
-
-
-# 创建全局账号管理器实例
 account_manager = WebAccountManager()
 
 
 @contextlib.asynccontextmanager
 async def get_web_account() -> AsyncIterator[BaseWebAccount]:
     seqid = f"{next(_seqid_generator) % 1000:03}"
-    logger.debug(f"{seqid}-开始获取 Web 账号。")
-
-    web_account: BaseWebAccount | None = None
+    if not account_manager.available_accounts:
+        logger.debug(f"{seqid}-没有任何可用账号, 正在创建临时 Web 账号, 可能会受到风控限制")
+        account = TemporaryWebAccount()
+    else:
+        account = random.choice(account_manager.available_accounts)
+    logger.info(f"{seqid}-获取账号 <{account.uid}>")
 
     try:
-        # 获取并锁定账号
-        # 如果没有任何可用账号, 创建临时账号
-        if not account_manager.available_accounts:
-            logger.debug(f"{seqid}-没有任何可用账号, 正在创建临时 Web 账号, 可能会受到风控限制")
-            web_account = TemporaryWebAccount()
-            await web_account.lock.acquire()
-            logger.debug(f"{seqid}-🔒账号锁定 <{web_account.uid}>")
-        # 有可用的账号, 获取账号
-        else:
-            web_account = await account_manager.acquire_account(seqid)
-        # 账号出库使用
-        st = datetime.now(tz=tz)
-        logger.info(f"{seqid}-⬆️ 账号出库 <{web_account.uid}>")
-        yield web_account
-        logger.info(f"{seqid}-⬇️ 账号回收 <{web_account.uid}> 总耗时: {(datetime.now(tz=tz) - st).total_seconds()}s")
-
+        yield account
+    except ResponseCodeError as e:
+        if e.code == -101 and not await account.check_alive():
+            account_manager.remove_account(account.uid)
+        raise
     finally:
-        # 解锁并清理账号资源
-        if web_account and web_account.lock.locked():
-            web_account.lock.release()
-            logger.debug(f"{seqid}-🟢账号解锁 <{web_account.uid}>")
+        if isinstance(account, TemporaryWebAccount):
+            account_manager.remove_account(account.uid)
 
 
 @scheduler.scheduled_job("interval", seconds=config.account_recover_interval)
-async def recover_accounts() -> None:
-    """恢复账号"""
+async def handle_unavailable_accounts() -> None:
+    """处理不可用账号"""
     for account in account_manager.accounts.values():
-        if isinstance(account, RecoverableWebAccount) and not account.available:
-            await account.recover()
+        if not account.available:
+            if isinstance(account, RecoverableWebAccount):
+                await account.recover()
+            else:
+                account_manager.remove_account(account.uid)
 
 
-# 初始化时加载所有账号
 account_manager.load_all_accounts()
 
 __all__ = [
