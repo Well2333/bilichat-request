@@ -1,7 +1,5 @@
-import asyncio
 import random
 from abc import ABC, abstractmethod
-from asyncio import Lock
 from datetime import datetime
 from typing import Any
 
@@ -9,7 +7,7 @@ from loguru import logger
 from typing_extensions import TypedDict
 
 from ..adapters.web import WebRequester
-from ..config import config, tz
+from ..config import tz
 from ..exceptions import ResponseCodeError
 
 
@@ -22,7 +20,6 @@ class BaseWebAccount(ABC):
     """Web账号基类"""
 
     available: bool = True
-    lock: Lock
     uid: int
     cookies: dict[str, Any]
     web_requester: WebRequester
@@ -35,7 +32,6 @@ class BaseWebAccount(ABC):
         cookies: dict[str, Any],
         note: Note | None = None,
     ) -> None:
-        self.lock = Lock()
         self.uid = int(uid)
         self.note = note or {
             "create_time": datetime.now(tz=tz).isoformat(timespec="seconds"),
@@ -58,7 +54,7 @@ class BaseWebAccount(ABC):
         """导出账号信息"""
         return f"[{self.type}] UID: <{self.uid}> Note: {self.note}"
 
-    async def check_alive(self, retry: int = config.retry) -> bool:
+    async def check_alive(self) -> bool:
         """检查账号是否存活"""
         try:
             logger.debug(f"查询 Web 账号 <{self.uid}> 存活状态")
@@ -66,15 +62,10 @@ class BaseWebAccount(ABC):
             logger.debug(f"Web 账号 <{self.uid}> 确认存活")
             self.available = True
         except ResponseCodeError as e:
-            if e.code == -101:
-                logger.error(f"Web 账号 <{self.uid}> 已失效: {e}")
-                self.available = False
-            if retry:
-                logger.warning(f"Web 账号 <{self.uid}> 查询存活失败: {e}, 重试...")
-                await asyncio.sleep(1)
-                return await self.check_alive(retry=retry - 1)
-            else:
-                self.available = False
+            if not e.code == -101:
+                raise
+            logger.error(f"Web 账号 <{self.uid}> 已失效: {e}")
+            self.available = False
         except Exception as e:
             logger.error(f"Web 账号 <{self.uid}> 检查存活状态时发生异常: {e}")
             self.available = False
@@ -97,10 +88,6 @@ class BaseWebAccount(ABC):
     def _on_cookies_updated(self) -> None:
         """cookies更新后的处理"""
 
-    @abstractmethod
-    def remove(self) -> None:
-        """删除账号"""
-
 
 class TemporaryWebAccount(BaseWebAccount):
     """临时账号"""
@@ -117,19 +104,11 @@ class TemporaryWebAccount(BaseWebAccount):
     def _on_cookies_updated(self) -> None:
         pass
 
-    def remove(self) -> None:
-        """删除临时账号"""
-        self.available = False
-
 
 class RecoverableWebAccount(BaseWebAccount, ABC):
     """可恢复账号"""
 
     type: str = "Recoverable"
-
-    def remove(self) -> None:
-        """可恢复账号不删除, 标记为不可用"""
-        self.available = False
 
     @abstractmethod
     async def recover(self) -> bool:
