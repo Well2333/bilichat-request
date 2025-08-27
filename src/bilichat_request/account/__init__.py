@@ -107,7 +107,7 @@ async def get_web_account() -> AsyncIterator[BaseWebAccount]:
 
 
 @scheduler.scheduled_job("interval", seconds=config.account_recover_interval)
-async def handel_unavailable_accounts() -> None:
+async def handle_unavailable_accounts() -> None:
     """处理不可用账号"""
     for account in account_manager.accounts.values():
         if not account.available:
