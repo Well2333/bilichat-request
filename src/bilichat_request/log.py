@@ -49,30 +49,6 @@ LOGPATH.mkdir(exist_ok=True)
 LOGURU_FORMAT = "<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level: <8}</level>|\
 <cyan>{name}</cyan>:<cyan>{function}</cyan>:<cyan>{line}</cyan> - <level>{message}</level>"
 
-
-# add file logger
-logger.add(
-    LOGPATH.joinpath("trace/{time:YYYY-MM-DD}.log"),
-    format=LOGURU_FORMAT,
-    encoding="utf-8",
-    backtrace=True,
-    diagnose=True,
-    rotation="00:00",
-    colorize=False,
-    level="TRACE",
-)
-
-logger.add(
-    LOGPATH.joinpath("{time:YYYY-MM-DD}.log"),
-    format=LOGURU_FORMAT,
-    encoding="utf-8",
-    backtrace=True,
-    diagnose=True,
-    rotation="00:00",
-    colorize=False,
-    level="INFO",
-)
-
 # add stdout logger
 logger.add(
     sys.stdout,
@@ -83,15 +59,55 @@ logger.add(
     level=config.log_level,
 )
 
+# add file logger
+if config.log_trace_retention > 0:
+    logger.add(
+        LOGPATH.joinpath("trace/{time:YYYY-MM-DD}.log"),
+        format=LOGURU_FORMAT,
+        encoding="utf-8",
+        backtrace=True,
+        diagnose=True,
+        rotation="00:00",
+        retention=f"{config.log_trace_retention} days",
+        compression=config.log_compression_format,
+        colorize=False,
+        level="TRACE",
+    )
+
+if config.log_info_retention > 0:
+    logger.add(
+        LOGPATH.joinpath("{time:YYYY-MM-DD}.log"),
+        format=LOGURU_FORMAT,
+        encoding="utf-8",
+        backtrace=True,
+        diagnose=True,
+        rotation="00:00",
+        retention=f"{config.log_info_retention} days",
+        compression=config.log_compression_format,
+        colorize=False,
+        level="INFO",
+    )
+
+
 # request logger
-logger.add(
-    LOGPATH.joinpath("req/{time:YYYY-MM-DD}.log"),
-    format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level: <8}</level>|<level>{message}</level>",
-    filter=lambda record: record["extra"].get("handler") == "request",
-    encoding="utf-8",
-    backtrace=True,
-    diagnose=True,
-    rotation="00:00",
-    colorize=False,
-    level="TRACE",
-)
+if config.log_request_retention > 0:
+    logger.add(
+        LOGPATH.joinpath("req/{time:YYYY-MM-DD}.log"),
+        format="<green>{time:YYYY-MM-DD HH:mm:ss}</green>|<level>{level: <8}</level>|<level>{message}</level>",
+        filter=lambda record: record["extra"].get("handler") == "request",
+        encoding="utf-8",
+        backtrace=True,
+        diagnose=True,
+        rotation="00:00",
+        retention=f"{config.log_request_retention} days",
+        compression=config.log_compression_format,
+        colorize=False,
+        level="TRACE",
+    )
+
+if config.log_compression_format is None and (
+    config.log_trace_retention > 1 or config.log_info_retention > 7 or config.log_request_retention > 7
+):
+    logger.warning("⚠️⚠️⚠️日志压缩已禁用, 可能会占用大量磁盘空间⚠️⚠️⚠️")
+elif config.log_trace_retention > 30 or config.log_info_retention > 180 or config.log_request_retention > 180:
+    logger.warning("⚠️⚠️⚠️日志保留天数过长, 可能会占用大量磁盘空间⚠️⚠️⚠️")
