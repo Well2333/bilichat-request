@@ -1,5 +1,5 @@
 from os import getenv
-from typing import Literal
+from typing import Literal, Optional
 
 from pydantic import BaseModel
 
@@ -17,6 +17,16 @@ class Config(BaseModel):
     # 基础配置
     log_level: Literal["TRACE", "DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "DEBUG"
     """日志等级, nonebot2 运行时此设置无效"""
+    log_trace_retention: int = 3
+    """trace 日志文件保留天数, 0 为禁用"""
+    log_info_retention: int = 30
+    """info 日志文件保留天数, 0 为禁用"""
+    log_request_retention: int = 0
+    """request 日志文件保留天数, 0 为禁用(用于记录收到和发出的请求, 非`开发者`或`BUG反馈`无需开启)"""
+    log_compression_format: None | Literal["gz", "bz2", "xz", "lzma", "tar", "tar.gz", "tar.bz2", "tar.xz", "zip"] = (
+        "tar.xz"
+    )
+    """日志文件压缩格式, 设置为 None 即不压缩"""
     data_path: str = "data"
     """数据存储路径, nonebot2 运行时此设置无效"""
     sentry_dsn: str = ""
