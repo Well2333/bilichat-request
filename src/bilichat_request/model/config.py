@@ -1,7 +1,7 @@
 from os import getenv
-from typing import Literal, Optional
+from typing import Literal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class CookieCloud(BaseModel):
@@ -70,3 +70,10 @@ class Config(BaseModel):
     ## cookie cloud 相关配置
     cookie_clouds: list[CookieCloud] = []
     """CookieCloud 配置, 用于自动获取 cookie"""
+
+    @field_validator("log_trace_retention")
+    @classmethod
+    def validate_log_trace_retention(cls, v: int) -> int:
+        if v < 0:
+            raise ValueError("log_trace_retention 必须大于等于 0")
+        return v
