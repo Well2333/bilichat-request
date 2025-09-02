@@ -100,20 +100,15 @@ async def get_mobile_screenshot(page: Page, dynid: str):
 async def get_pc_screenshot(page: Page, dynid: str):
     """电脑端动态截图"""
     url = f"https://t.bilibili.com/{dynid}"
-    await page.set_viewport_size({"width": 2560, "height": 1080})
+    await page.set_viewport_size({"width": 950, "height": 720})
     await page.goto(url, wait_until="networkidle")
     # 动态被删除或者进审核了
     if page.url == "https://www.bilibili.com/404":
         raise NotFindAbortError(f"动态 {dynid} 不存在")
-    card = await page.query_selector(".card")
+    card = await page.query_selector(".bili-dyn-item__main")
     assert card
     clip = await card.bounding_box()
     assert clip
-    bar = await page.query_selector(".bili-dyn-action__icon")
-    assert bar
-    bar_bound = await bar.bounding_box()
-    assert bar_bound
-    clip["height"] = bar_bound["y"] - clip["y"]
     return page, clip
 
 
