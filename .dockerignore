@@ -1,0 +1,28 @@
+**/__pycache__
+**/*.py[cod]
+*$py.class
+
+.DS_Store
+.vscode/
+
+# PDM
+.pdm-build/
+.pdm-python
+.pdm.toml
+
+# Project local venv
+.venv/
+
+# Git
+.git/
+.gitignore
+
+# Logs
+logs/
+*.log
+
+# Temp
+temp/
+
+# Data
+data/
