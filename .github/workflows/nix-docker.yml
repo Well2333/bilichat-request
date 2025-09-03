@@ -1,0 +1,25 @@
+name: Build Docker image with Nix
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  build-docker:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - uses: actions/checkout@main
+      - uses: DeterminateSystems/nix-installer-action@main
+      - uses: DeterminateSystems/magic-nix-cache-action@main
+      - name: Build image
+        run: |
+          nix run "nixpkgs#nix-output-monitor" build ".#docker-image"
+          cp $(readlink ./result) .
+      - uses: actions/upload-artifact@main
+        with:
+          name: docker-image
+          path: '*.tar.gz'
+          compression-level: 0
