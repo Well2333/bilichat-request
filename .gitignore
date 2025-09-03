@@ -169,3 +169,4 @@ temp/
 config.yaml
 pdm.lock
 uv.lock
+/result
