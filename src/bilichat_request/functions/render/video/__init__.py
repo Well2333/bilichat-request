@@ -95,6 +95,7 @@ class VideoImage:
         uploaders: list[UP],
         b23_url: str,
         aid: str,
+        bvid: str,
         desc: str | None = None,
     ) -> None:
         self.cover: BytesIO = cover if isinstance(cover, BytesIO) else BytesIO(cover)
@@ -105,7 +106,7 @@ class VideoImage:
         """视频分区"""
         self.title: str = title
         """视频标题"""
-        self.desc: str = desc or "该视频没有简介"
+        self.desc: str = desc or "-"
         """视频简介"""
         self.view: str = view
         """播放量"""
@@ -129,6 +130,8 @@ class VideoImage:
         """b23短链"""
         self.aid: str = aid
         """av号"""
+        self.bvid: str = bvid
+        """bv号"""
 
     @classmethod
     async def get(
@@ -194,6 +197,7 @@ class VideoImage:
             uploaders=ups,
             b23_url=b23_url,
             aid=f"av{data['aid']}",
+            bvid=data["bvid"],
         )
 
     @staticmethod
