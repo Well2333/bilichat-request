@@ -64,7 +64,7 @@ async def screenshot(
         dm_count=video_info.danmaku,
         reply_count=video_info.reply,
         upload_date=video_info.pubdate.strftime("%Y-%m-%d"),
-        av_number=video_info.aid,
+        video_id=video_info.bvid,
         video_summary=video_info.desc,
         like_count=video_info.like,
         coin_count=video_info.coin,
