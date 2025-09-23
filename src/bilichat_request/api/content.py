@@ -70,7 +70,7 @@ async def get_column(cvid: int | str, quality: int = 75) -> Content:
 
 @router.get("/dynamic")
 @error_handler
-async def get_dynamic(dynamic_id: str, quality: int = 75, *, mobile_style: bool = True) -> Content:
+async def get_dynamic(dynamic_id: str, quality: int = 70, *, mobile_style: bool = False) -> Content:
     return await Content.dynamic(dynamic_id, quality=quality, mobile_style=mobile_style)
 
 
