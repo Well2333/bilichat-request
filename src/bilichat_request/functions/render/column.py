@@ -67,8 +67,9 @@ async def screenshot(cvid: str, retry: int = config.retry, quality: int = 75) ->
                 return await screenshot(cvid, retry=retry - 1)
             raise AbortError(f"cv{cvid} 专栏截图超时") from e
         else:
-            capture_exception(e) if config.sentry_dsn else None
+            logger.opt(exception=e).debug(f"专栏 cv{cvid} 截图失败")
+            capture_exception()
             if retry:
-                logger.error(f"专栏 cv{cvid} 截图失败, 重试...")
+                logger.error(f"专栏 cv{cvid} 截图失败, 重试<{retry-1}/{config.retry}>:{e}")
                 return await screenshot(cvid, retry=retry - 1)
-            raise AbortError(f"cv{cvid} 专栏截图失败") from e
+            raise AbortError(f"cv{cvid} 专栏截图失败 {type(e)}:{e}") from e
