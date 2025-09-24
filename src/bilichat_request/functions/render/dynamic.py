@@ -163,4 +163,4 @@ async def screenshot(
             if retry:
                 logger.error(f"动态 {dynid} 截图失败, 重试<{retry-1}/{config.retry}>:{e}")
                 return await screenshot(dynid, mobile_style=mobile_style, quality=quality, retry=retry - 1)
-            raise AbortError(f"{dynid} 动态截图失败") from e
+            raise AbortError(f"{dynid} 动态截图失败 {type(e)}:{e}") from e
