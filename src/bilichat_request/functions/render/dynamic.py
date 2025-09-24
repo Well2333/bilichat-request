@@ -23,7 +23,6 @@ except httpx.HTTPError as e:
     ).text
 
 
-
 @scheduler.scheduled_job("interval", minutes=20)
 async def update_mobile_style_js():
     global mobile_style_js  # noqa: PLW0603
@@ -159,8 +158,9 @@ async def screenshot(
         if "waiting until" in str(e):
             raise NotFindAbortError(f"动态 {dynid} 不存在") from e
         else:
+            logger.opt(exception=e).debug(f"动态 {dynid} 截图失败")
             capture_exception()
             if retry:
-                logger.error(f"动态 {dynid} 截图失败, 重试...")
+                logger.error(f"动态 {dynid} 截图失败, 重试<{retry-1}/{config.retry}>:{e}")
                 return await screenshot(dynid, mobile_style=mobile_style, quality=quality, retry=retry - 1)
             raise AbortError(f"{dynid} 动态截图失败") from e
