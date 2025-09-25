@@ -37,55 +37,41 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           IMAGE_NAME: ${{ env.IMAGE_NAME }}
         run: |
-          # 使用专业的TOML解析库来提取dependencies
-          # 先安装tomli到GitHub Actions环境
-          pip3 install tomli
+          # Install yq for TOML parsing (simpler than custom Python scripts)
+          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
+          sudo chmod +x /usr/local/bin/yq
           
-          DEPS_SECTION=$(python3 -c "
-          import tomli
-          import sys
+          # Extract dependencies using yq
+          DEPS_STRING=$(yq -o json '.project.dependencies' pyproject.toml | jq -r 'sort | join("|")')
           
-          try:
-              with open('pyproject.toml', 'rb') as f:
-                  data = tomli.load(f)
-              
-              # 获取dependencies数组
-              dependencies = data.get('project', {}).get('dependencies', [])
-              
-              if dependencies:
-                  # 排序确保一致性，然后转为字符串
-                  sorted_deps = sorted(dependencies)
-                  deps_str = '|'.join(sorted_deps)
-                  print(deps_str)
-              else:
-                  print('no-deps-found')
-                  
-          except Exception as e:
-              print(f'error-parsing-toml: {e}', file=sys.stderr)
-              print('fallback-hash')
-          ")
-          
-          DEPS_HASH=$(echo "${DEPS_SECTION}" | sha256sum | cut -d' ' -f1 | head -c 12)
-          echo "deps-hash=${DEPS_HASH}" >> $GITHUB_OUTPUT
-          
-          echo "📋 Dependencies section extracted:"
-          echo "${DEPS_SECTION}"
-          echo "🔍 Dependencies hash: ${DEPS_HASH}"
-          
-          # 检查runtime镜像是否存在来决定是否需要构建
-          DEPS_CHANGED=false
-          echo "🔍 Checking runtime image existence..."
-          if ! docker manifest inspect ${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-${DEPS_HASH} >/dev/null 2>&1; then
-            DEPS_CHANGED=true
-            echo "⚠️  Runtime image with deps hash ${DEPS_HASH} not found, need to build"
+          if [[ "${DEPS_STRING}" == "null" || -z "${DEPS_STRING}" ]]; then
+            echo "❌ No dependencies found in pyproject.toml"
+            DEPS_STRING="no-deps-found"
+            DEPS_HASH="fallback"
           else
-            echo "✅ Runtime image with deps hash ${DEPS_HASH} exists, can reuse"
+            # Calculate hash of sorted dependencies string
+            DEPS_HASH=$(echo "${DEPS_STRING}" | sha256sum | cut -d' ' -f1 | head -c 12)
           fi
           
-          # 检查runtime镜像是否存在
-          RUNTIME_EXISTS=false
-          if docker manifest inspect ${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-${DEPS_HASH} >/dev/null 2>&1; then
+          echo "deps-hash=${DEPS_HASH}" >> $GITHUB_OUTPUT
+          echo "deps-string=${DEPS_STRING}" >> $GITHUB_OUTPUT
+          
+          echo "📋 Dependencies extracted:"
+          echo "${DEPS_STRING:0:100}$([ ${#DEPS_STRING} -gt 100 ] && echo '...')"
+          echo "🔍 Dependencies hash: ${DEPS_HASH}"
+          
+          # Single check for runtime image existence
+          echo "🔍 Checking runtime image existence..."
+          RUNTIME_IMAGE="${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-${DEPS_HASH}"
+          
+          if docker manifest inspect "${RUNTIME_IMAGE}" >/dev/null 2>&1; then
             RUNTIME_EXISTS=true
+            DEPS_CHANGED=false
+            echo "✅ Runtime image ${RUNTIME_IMAGE} exists, can reuse"
+          else
+            RUNTIME_EXISTS=false
+            DEPS_CHANGED=true
+            echo "⚠️  Runtime image ${RUNTIME_IMAGE} not found, need to build"
           fi
           
           echo "deps-changed=${DEPS_CHANGED}" >> $GITHUB_OUTPUT
@@ -179,16 +165,29 @@ jobs:
           DEPS_HASH: ${{ needs.detect-changes.outputs.deps-hash }}
         run: |
           echo "⏳ Waiting for runtime image to be available..."
-          TIMEOUT=600  # 10 minutes timeout for runtime build
+          RUNTIME_IMAGE="${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-${DEPS_HASH}"
+          TIMEOUT=600  # 10 minutes timeout
           ELAPSED=0
-          while ! docker manifest inspect ${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-${DEPS_HASH} >/dev/null 2>&1; do
+          SLEEP_TIME=5  # Start with 5 seconds
+          MAX_SLEEP=30  # Max sleep time
+          
+          while ! docker manifest inspect "${RUNTIME_IMAGE}" >/dev/null 2>&1; do
             if [ $ELAPSED -ge $TIMEOUT ]; then
               echo "❌ Timeout waiting for runtime image (${TIMEOUT}s)"
               exit 1
             fi
-            echo "⏳ Still waiting... (${ELAPSED}s/${TIMEOUT}s elapsed)"
-            sleep 15
-            ELAPSED=$((ELAPSED + 15))
+            
+            echo "⏳ Still waiting... (${ELAPSED}s/${TIMEOUT}s, next check in ${SLEEP_TIME}s)"
+            sleep $SLEEP_TIME
+            ELAPSED=$((ELAPSED + SLEEP_TIME))
+            
+            # Exponential backoff with max limit
+            if [ $SLEEP_TIME -lt $MAX_SLEEP ]; then
+              SLEEP_TIME=$((SLEEP_TIME * 2))
+              if [ $SLEEP_TIME -gt $MAX_SLEEP ]; then
+                SLEEP_TIME=$MAX_SLEEP
+              fi
+            fi
           done
           echo "✅ Runtime image is now available"
 
