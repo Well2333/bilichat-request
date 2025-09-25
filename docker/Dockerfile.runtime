@@ -1,3 +1,19 @@
+# 构建阶段 - 用于编译依赖
+FROM docker.io/library/python:3.12-slim-bookworm AS builder
+
+ARG HTTP_PROXY
+ARG HTTPS_PROXY
+ENV HTTP_PROXY=$HTTP_PROXY
+ENV HTTPS_PROXY=$HTTPS_PROXY
+
+WORKDIR /app
+COPY ./pyproject.toml ./README.md ./
+
+# 安装pip-tools并编译依赖
+RUN pip install pip-tools && \
+    pip-compile --no-header pyproject.toml -o requirements.txt
+
+# 运行时阶段 - 最终镜像
 FROM docker.io/library/python:3.12-slim-bookworm
 
 ARG HTTP_PROXY
@@ -28,19 +44,19 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY docker-requirements.txt .
-RUN pip install --no-cache-dir -r docker-requirements.txt
+# 从构建阶段复制编译好的requirements.txt
+COPY --from=builder /app/requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt && \
+    rm requirements.txt
 
 RUN playwright install firefox --with-deps && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-COPY ./src ./src
-COPY ./pyproject.toml .
-COPY ./README.md .
-COPY ./start_server.py .
-RUN pip install --no-cache-dir -e .
-
-HEALTHCHECK --interval=60s --timeout=2s --start-period=30s --retries=5 CMD curl -f http://localhost:40432/health || exit 1
-
-CMD ["python", "start_server.py"]
+# 标记为内部运行时基础镜像 - 不建议用户直接使用
+LABEL org.opencontainers.image.title="bilichat-request"
+LABEL org.opencontainers.image.description="Internal runtime base image - DO NOT USE DIRECTLY"
+LABEL org.opencontainers.image.usage="This is an internal base image used by bilichat-request application image"
+LABEL org.opencontainers.image.vendor="well404"
+LABEL image.type="runtime-base"
+LABEL image.visibility="internal"
