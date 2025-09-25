@@ -64,7 +64,7 @@ echo "   ✅ 只有依赖变化时才重建重的运行时层"
 echo ""
 
 echo "🚀 测试运行:"
-echo "   docker run --rm -p 40432:40432 ${DOCKER_USERNAME}/bilichat-request:latest" -n bilichat-request-test
+echo "   docker run --rm -p 40432:40432 ${DOCKER_USERNAME}/bilichat-request:latest -n bilichat-request-test"
 echo ""
 
 echo "🧹 清理旧镜像 (可选):"
