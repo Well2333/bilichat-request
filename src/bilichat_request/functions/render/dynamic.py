@@ -99,7 +99,7 @@ async def get_mobile_screenshot(page: Page, dynid: str):
 async def get_pc_screenshot(page: Page, dynid: str):
     """电脑端动态截图"""
     url = f"https://t.bilibili.com/{dynid}"
-    await page.set_viewport_size({"width": 950, "height": 720})
+    await page.set_viewport_size({"width": 2560, "height": 1440})
     await page.goto(url, wait_until="networkidle")
     # 动态被删除或者进审核了
     if page.url == "https://www.bilibili.com/404":
@@ -108,6 +108,8 @@ async def get_pc_screenshot(page: Page, dynid: str):
     assert card
     clip = await card.bounding_box()
     assert clip
+    clip["y"] -= 10
+    clip["height"] += 20
     return page, clip
 
 
