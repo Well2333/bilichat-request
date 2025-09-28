@@ -1,6 +1,6 @@
 [project]
 name = "bilichat-request"
-version = "0.5.8"
+version = "0.5.10"
 description = "Default template for PDM package"
 authors = [{ name = "Well404", email = "well_404@outlook.com" }]
 dependencies = [
