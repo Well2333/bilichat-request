@@ -1,0 +1,45 @@
+name: Build Runtime Base Image
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build-runtime:
+    name: Build Runtime Base Image
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: Build and push runtime image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/Dockerfile.runtime
+          platforms: linux/amd64,linux/arm64
+          push: true
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/bilichat-request:runtime-latest
+            ${{ secrets.DOCKER_USERNAME }}/bilichat-request:runtime-${{ github.run_number }}
+          labels: |
+            org.opencontainers.image.title=bilichat-request
+            org.opencontainers.image.description=Internal runtime base image - DO NOT USE DIRECTLY
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
+            org.opencontainers.image.revision=${{ github.sha }}
+            org.opencontainers.image.created=${{ github.event.repository.updated_at}}
+            image.type=runtime-base
+            image.visibility=internal
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
