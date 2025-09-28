@@ -1,11 +1,7 @@
 name: Build Runtime Base Image
 
 on:
-  # 只允许手动触发
   workflow_dispatch:
-
-env:
-  IMAGE_NAME: bilichat-request
 
 jobs:
   build-runtime:
@@ -27,36 +23,6 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Generate runtime image tags
-        id: meta
-        run: |
-          # 使用yq提取依赖并计算hash
-          sudo wget -qO /usr/local/bin/yq https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64
-          sudo chmod +x /usr/local/bin/yq
-          
-          DEPS_STRING=$(yq -o json '.project.dependencies' pyproject.toml | jq -r 'sort | join("|")')
-          
-          if [[ "${DEPS_STRING}" == "null" || -z "${DEPS_STRING}" ]]; then
-            echo "❌ No dependencies found in pyproject.toml"
-            DEPS_HASH="fallback"
-          else
-            DEPS_HASH=$(echo "${DEPS_STRING}" | sha256sum | cut -d' ' -f1 | head -c 12)
-          fi
-          
-          TIMESTAMP=$(date +%Y%m%d-%H%M%S)
-          
-          # 生成运行时基础镜像标签列表
-          TAGS="${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:runtime-latest"
-          TAGS="${TAGS},${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:runtime-${DEPS_HASH}"
-          TAGS="${TAGS},${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:runtime-${TIMESTAMP}"
-          
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
-          echo "deps-hash=${DEPS_HASH}" >> $GITHUB_OUTPUT
-          echo "timestamp=${TIMESTAMP}" >> $GITHUB_OUTPUT
-          
-          echo "🔍 Dependencies hash: ${DEPS_HASH}"
-          echo "⏰ Build timestamp: ${TIMESTAMP}"
-
       - name: Build and push runtime image
         uses: docker/build-push-action@v5
         with:
@@ -64,28 +30,16 @@ jobs:
           file: ./docker/Dockerfile.runtime
           platforms: linux/amd64,linux/arm64
           push: true
-          tags: ${{ steps.meta.outputs.tags }}
+          tags: |
+            ${{ secrets.DOCKER_USERNAME }}/bilichat-request:runtime-latest
+            ${{ secrets.DOCKER_USERNAME }}/bilichat-request:runtime-${{ github.run_number }}
           labels: |
             org.opencontainers.image.title=bilichat-request
             org.opencontainers.image.description=Internal runtime base image - DO NOT USE DIRECTLY
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
+            org.opencontainers.image.source=https://github.com/${{ github.repository }}
             org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.vendor=well404
+            org.opencontainers.image.created=${{ github.event.repository.updated_at}}
             image.type=runtime-base
             image.visibility=internal
-            deps.hash=${{ steps.meta.outputs.deps-hash }}
-            build.timestamp=${{ steps.meta.outputs.timestamp }}
-          cache-from: type=gha,scope=runtime
-          cache-to: type=gha,mode=max,scope=runtime
-
-      - name: Output runtime build info
-        run: |
-          echo "🚀 Runtime base image built successfully!"
-          echo ""
-          echo "📦 Tags pushed:"
-          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | sed 's/^/  - /'
-          echo ""
-          echo "🔍 Dependencies hash: ${{ steps.meta.outputs.deps-hash }}"
-          echo "⏰ Build timestamp: ${{ steps.meta.outputs.timestamp }}"
-          echo ""
-          echo "💡 Next step: Trigger app build or release to use this runtime"
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

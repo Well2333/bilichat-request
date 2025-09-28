@@ -1,19 +1,13 @@
-name: Build Application Image
+name: Build and Push Docker Image
 
 on:
-  # 发布时自动触发
   release:
     types: [created]
-  
-  # 手动触发
   workflow_dispatch:
 
-env:
-  IMAGE_NAME: bilichat-request
-
 jobs:
-  build-app:
-    name: Build Application Image
+  build:
+    name: Build Docker Image
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -31,37 +25,19 @@ jobs:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
-      - name: Generate app image tags
+      - name: Extract metadata
         id: meta
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        run: |
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            # 发布时使用版本号
-            VERSION=${{ github.event.release.tag_name }}
-            TAGS="${DOCKER_USERNAME}/${IMAGE_NAME}:${VERSION}"
-            TAGS="${TAGS},${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
-          else
-            # 其他情况使用分支名和短SHA
-            BRANCH=${GITHUB_REF#refs/heads/}
-            SHORT_SHA=${GITHUB_SHA::7}
-            TAGS="${DOCKER_USERNAME}/${IMAGE_NAME}:${BRANCH}-${SHORT_SHA}"
-            if [[ "$BRANCH" == "main" || "$BRANCH" == "master" ]]; then
-              TAGS="${TAGS},${DOCKER_USERNAME}/${IMAGE_NAME}:latest"
-            fi
-          fi
-          echo "tags=${TAGS}" >> $GITHUB_OUTPUT
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ secrets.DOCKER_USERNAME }}/bilichat-request
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=raw,value=latest,enable={{is_default_branch}}
 
-      - name: Update Dockerfile to use latest runtime
-        env:
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          IMAGE_NAME: ${{ env.IMAGE_NAME }}
-        run: |
-          # 使用最新的runtime标签
-          sed -i "s|FROM well404/bilichat-request:runtime-latest|FROM ${DOCKER_USERNAME}/${IMAGE_NAME}:runtime-latest|" docker/Dockerfile
-
-      - name: Build and push application image
+      - name: Build and push Docker image
         uses: docker/build-push-action@v5
         with:
           context: .
@@ -69,26 +45,6 @@ jobs:
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
-          labels: |
-            org.opencontainers.image.title=bilichat-request
-            org.opencontainers.image.description=BiliChat Request Application
-            org.opencontainers.image.created=${{ github.event.head_commit.timestamp }}
-            org.opencontainers.image.revision=${{ github.sha }}
-            org.opencontainers.image.vendor=well404
-            image.type=application
-            build.trigger=${{ github.event_name }}
-          cache-from: type=gha,scope=app
-          cache-to: type=gha,mode=max,scope=app
-
-      - name: Output build info
-        run: |
-          echo "🎉 Application image built successfully!"
-          echo ""
-          echo "📦 Application images pushed:"
-          echo "${{ steps.meta.outputs.tags }}" | tr ',' '\n' | sed 's/^/  - /'
-          echo ""
-          echo "🏗️  Build context:"
-          echo "  - Trigger: ${{ github.event_name }}"
-          echo "  - Runtime used: ${{ secrets.DOCKER_USERNAME }}/${{ env.IMAGE_NAME }}:runtime-latest"
-          echo ""
-          echo "💡 Note: Make sure to build runtime first if dependencies changed!"
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
