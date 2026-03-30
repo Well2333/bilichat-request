@@ -30,7 +30,12 @@ async def launch_browser(**kwargs) -> Browser:
 
 
 if NONEBOT_ENV and bool({x for x in sys.modules if "nonebot_plugin_htmlrender" in x}):
-    from nonebot_plugin_htmlrender import get_browser  # type: ignore
+    try:
+        # nonebot-plugin-htmlrender >= 0.6.7
+        from nonebot_plugin_htmlrender.browser import get_browser  # type: ignore
+    except ImportError:
+        # Backward compatibility for old versions.
+        from nonebot_plugin_htmlrender import get_browser  # type: ignore
 
 else:
 
