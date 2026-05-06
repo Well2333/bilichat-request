@@ -56,9 +56,14 @@ class PyCookieCloud:
         if "cookie_data" not in decrypted_data:
             raise ValueError(f"Decryption failed, raw data: \n{decrypted_data}")
         decrypted_data = decrypted_data["cookie_data"]
-        bilibili_cookie = decrypted_data.get("bilibili.com", None) or decrypted_data.get("www.bilibili.com", None)
-        if bilibili_cookie:
-            return {c["name"]: c["value"] for c in bilibili_cookie}
+        bilibili_cookies = {
+            cookie["name"]: cookie["value"]
+            for domain, cookies in decrypted_data.items()
+            if "bilibili" in domain
+            for cookie in cookies
+        }
+        if "DedeUserID" in bilibili_cookies:
+            return bilibili_cookies
         raise ValueError(f"Decryption failed, raw data: \n{decrypted_data}")
 
     async def get_cookie(self) -> dict[str, str | int | float | bool]:
