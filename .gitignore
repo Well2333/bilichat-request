@@ -169,3 +169,6 @@ temp/
 config.yaml
 pdm.lock
 uv.lock
+
+# Local AI working materials
+.ai/
