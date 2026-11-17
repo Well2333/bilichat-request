@@ -1,3 +1,4 @@
+import re
 import urllib.parse
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
@@ -106,7 +107,10 @@ async def check_browser_health():
         logger.info("检查浏览器是否可以正常运行")
         async with get_new_page() as page:
             await page.goto("https://bilibili.com")
-            await page.wait_for_url("https://www.bilibili.com/", timeout=1000)
+            await page.wait_for_url(
+                re.compile(r"^https://(?:www\.)?bilibili\.com/(?:en/?)?(?:[?#].*)?$"),
+                timeout=1000,
+            )
         logger.success("浏览器运行正常")
     except Exception as e:
         raise RuntimeError("浏览器无法访问bilibili, 请检查安装环境或尝试联系开发者") from e
